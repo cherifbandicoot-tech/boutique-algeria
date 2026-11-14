@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X, Plus, Minus, Trash2, CheckCircle2, Truck, Building2, Loader2, Clock, Sparkles, Tag, MapPin, PackageSearch,
+  X, Plus, Minus, Trash2, CheckCircle2, Truck, Building2, Loader2, Clock, Sparkles, Tag, MapPin, PackageSearch, ChevronDown, Check,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
@@ -42,6 +42,30 @@ interface OrderReceipt {
   items: { title: string; size: string; quantity: number; unitPriceDzd: number }[];
 }
 
+function formatDeskLabel(nomBureau: string, commune?: string) {
+  let cleaned = nomBureau
+    .replace(/\[\s*e-?com\s*\]/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (cleaned === cleaned.toUpperCase() && cleaned.length > 3) {
+    cleaned = cleaned
+      .toLowerCase()
+      .replace(/(^|\s|-)\S/g, (ch) => ch.toUpperCase());
+  }
+
+  if (!commune) return cleaned;
+  const c = commune.trim();
+  if (
+    cleaned.toLowerCase() === c.toLowerCase() ||
+    cleaned.toLowerCase().includes(c.toLowerCase()) ||
+    c.toLowerCase().includes(cleaned.toLowerCase())
+  ) {
+    return cleaned;
+  }
+  return `${cleaned} (${c})`;
+}
+
 export function CartDrawer() {
   const { items, isOpen, closeCart, updateQty, removeItem, subtotalDzd, clearCart } = useCart();
   const locale = useLocale();
@@ -55,6 +79,8 @@ export function CartDrawer() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [commune, setCommune] = useState('');
   const [stopdeskCode, setStopdeskCode] = useState('');
+  const [deskMenuOpen, setDeskMenuOpen] = useState(false);
+  const [deskSearch, setDeskSearch] = useState('');
   const [address, setAddress] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -70,7 +96,7 @@ export function CartDrawer() {
   const [checkingPromo, setCheckingPromo] = useState(false);
 
   const [loadingFee, setLoadingFee] = useState(false);
-  const [homeDeliveryDzd, setHomeDeliveryDzd] = useState<number>(400);
+  const [homeDeliveryDzd, setHomeDeliveryDzd] = useState<number>(450);
   const [stopDeskDzd, setStopDeskDzd] = useState<number>(300);
   const [homeAvailable, setHomeAvailable] = useState<boolean>(true);
   const [stopdeskAvailable, setStopdeskAvailable] = useState<boolean>(true);
@@ -82,6 +108,8 @@ export function CartDrawer() {
     async function loadWilayaData() {
       setLoadingFee(true);
       setLoadingGeo(true);
+      setDeskMenuOpen(false);
+      setDeskSearch('');
       try {
         const [feeRes, comRes, deskRes] = await Promise.all([
           fetch(`/api/delivery-fees?wilaya=${wilayaCode}`),
@@ -99,7 +127,9 @@ export function CartDrawer() {
           }
           if (comRes.ok) {
             const comData = await comRes.json();
-            const list: CommuneOption[] = comData.communes || [];
+            const list: CommuneOption[] = (comData.communes || []).sort((a: CommuneOption, b: CommuneOption) =>
+              a.commune.localeCompare(b.commune)
+            );
             setCommunes(list);
             if (list.length > 0) setCommune(list[0].commune);
             else setCommune('');
@@ -128,6 +158,15 @@ export function CartDrawer() {
   const selectedWilaya = ALGERIA_WILAYAS.find((w) => w.code === wilayaCode) || ALGERIA_WILAYAS[15];
   const selectedDesk = stopdesks.find((d) => d.code_stopdesk === stopdeskCode);
 
+  const filteredDesks = stopdesks.filter((d) => {
+    const q = deskSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      formatDeskLabel(d.nom_bureau, d.commune).toLowerCase().includes(q) ||
+      d.adresse.toLowerCase().includes(q)
+    );
+  });
+
   const discountDzd = appliedPromo ? Math.min(subtotalDzd, appliedPromo.discountDzd) : 0;
   const netSubtotal = Math.max(0, subtotalDzd - discountDzd);
   const freeShippingThreshold = settings.freeShippingThresholdDzd || 0;
@@ -152,7 +191,7 @@ export function CartDrawer() {
         setPromoMsg(data.error || 'Code invalide');
       } else {
         setAppliedPromo({ code: data.code, discountDzd: data.discountDzd });
-        setPromoMsg(`Code ${data.code} appliquÃ© (-${data.discountDzd.toLocaleString()} DZD)`);
+        setPromoMsg(`Code ${data.code} appliqué (-${data.discountDzd.toLocaleString()} DZD)`);
       }
     } finally {
       setCheckingPromo(false);
@@ -166,7 +205,7 @@ export function CartDrawer() {
 
     const effectiveCommune =
       deliveryType === 'DESK' && selectedDesk
-        ? selectedDesk.commune || selectedDesk.nom_bureau
+        ? selectedDesk.commune || formatDeskLabel(selectedDesk.nom_bureau)
         : commune;
 
     try {
@@ -179,7 +218,7 @@ export function CartDrawer() {
           wilayaCode,
           commune: effectiveCommune || selectedWilaya.nameFr,
           stopdeskCode: deliveryType === 'DESK' ? stopdeskCode : undefined,
-          stopdeskName: deliveryType === 'DESK' ? selectedDesk?.nom_bureau : undefined,
+          stopdeskName: deliveryType === 'DESK' && selectedDesk ? formatDeskLabel(selectedDesk.nom_bureau, selectedDesk.commune) : undefined,
           address,
           deliveryType,
           paymentMethod: 'COD',
@@ -204,7 +243,7 @@ export function CartDrawer() {
         setPromoInput('');
       }
     } catch {
-      setErrorMsg('Erreur de connexion. Veuillez rÃ©essayer.');
+      setErrorMsg('Erreur de connexion. Veuillez réessayer.');
     } finally {
       setSubmitting(false);
     }
@@ -238,7 +277,7 @@ export function CartDrawer() {
                 <h2 className="font-serif text-2xl">{t('nav.cart')}</h2>
                 <div className="flex items-center gap-1.5 text-[11px] font-semibold mt-0.5" style={{ color: settings.primaryColor }}>
                   <Sparkles size={11} style={{ color: settings.accentColor }} />
-                  <span>E-com Delivery Officiel â€¢ 58 Wilayas</span>
+                  <span>E-com Delivery Officiel • 58 Wilayas</span>
                 </div>
               </div>
               <button
@@ -255,7 +294,7 @@ export function CartDrawer() {
             {freeShippingThreshold > 0 && items.length > 0 && !receipt && (
               <div className="px-5 py-2.5 bg-emerald-50 border-b border-emerald-200/70 text-[11px] text-emerald-950">
                 {isFreeShipping ? (
-                  <p className="font-semibold text-center">Livraison GRATUITE dÃ©bloquÃ©e sur votre commande !</p>
+                  <p className="font-semibold text-center">Livraison GRATUITE débloquée sur votre commande !</p>
                 ) : (
                   <p className="text-center">
                     Plus que <strong>{(freeShippingThreshold - netSubtotal).toLocaleString()} DZD</strong> pour la livraison gratuite !
@@ -266,11 +305,15 @@ export function CartDrawer() {
 
             <div className="flex-1 overflow-y-auto p-5 space-y-5">
               {receipt ? (
-                <div className="bg-white rounded-3xl p-6 border border-black/10 shadow-sm space-y-4">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-white rounded-3xl p-6 border border-black/10 shadow-sm space-y-4"
+                >
                   <div className="text-center space-y-2">
                     <CheckCircle2 size={48} className="mx-auto" style={{ color: settings.primaryColor }} />
                     <h3 className="font-serif text-2xl">
-                      {locale === 'ar' ? 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø·Ù„Ø¨Ùƒ Ø¨Ù†Ø¬Ø§Ø­!' : 'Commande ConfirmÃ©e !'}
+                      {locale === 'ar' ? 'تم تسجيل طلبك بنجاح!' : 'Commande Confirmée !'}
                     </h3>
                     <p className="text-xs font-mono font-bold bg-stone-100 inline-block px-3 py-1 rounded-full">
                       {receipt.orderNumber}
@@ -280,7 +323,7 @@ export function CartDrawer() {
                   <div className="border-t border-b border-black/10 py-3 space-y-2 text-xs">
                     {receipt.items.map((it, idx) => (
                       <div key={idx} className="flex justify-between">
-                        <span>{it.title} ({it.size}) Ã— {it.quantity}</span>
+                        <span>{it.title} ({it.size}) × {it.quantity}</span>
                         <span className="font-semibold">{(it.unitPriceDzd * it.quantity).toLocaleString()} DZD</span>
                       </div>
                     ))}
@@ -298,20 +341,20 @@ export function CartDrawer() {
                       </div>
                     )}
                     <div className="flex justify-between opacity-80">
-                      <span>Livraison ({receipt.wilayaName} â€¢ {receipt.deliveryType === 'HOME' ? 'Domicile' : 'Stop Desk'})</span>
+                      <span>Livraison ({receipt.wilayaName} • {receipt.deliveryType === 'HOME' ? 'Domicile' : 'Stop Desk'})</span>
                       <span>{receipt.shippingDzd === 0 ? 'GRATUITE' : `${receipt.shippingDzd.toLocaleString()} DZD`}</span>
                     </div>
                     {receipt.stopdeskName && (
                       <p className="text-[11px] opacity-70">Bureau : {receipt.stopdeskName}</p>
                     )}
                     <div className="flex justify-between text-sm font-bold pt-2 border-t border-black/10">
-                      <span>Total Ã  payer (COD)</span>
+                      <span>Total à payer (COD)</span>
                       <span>{receipt.totalDzd.toLocaleString()} DZD</span>
                     </div>
                   </div>
 
                   <p className="text-[11px] opacity-70 text-center">
-                    DÃ©lai estimÃ© : <strong>{receipt.delay}</strong>. Notre Ã©quipe vous contactera par tÃ©lÃ©phone pour confirmer avant lâ€™expÃ©dition.
+                    Délai estimé : <strong>{receipt.delay}</strong>. Notre équipe vous contactera par téléphone pour confirmer avant l’expédition.
                   </p>
 
                   <Link
@@ -324,47 +367,56 @@ export function CartDrawer() {
                     className="w-full py-3 rounded-full text-white text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2"
                   >
                     <PackageSearch size={14} />
-                    <span>{locale === 'ar' ? 'ØªØªØ¨Ø¹ Ø·Ù„Ø¨ÙŠ' : 'Suivre ma commande'}</span>
+                    <span>{locale === 'ar' ? 'تتبع طلبي' : 'Suivre ma commande'}</span>
                   </Link>
-                </div>
+                </motion.div>
               ) : items.length === 0 ? (
                 <p className="text-center text-sm opacity-60 py-20">
-                  {locale === 'ar' ? 'Ø³Ù„ØªÙƒ ÙØ§Ø±ØºØ© Ø­Ø§Ù„ÙŠØ§Ù‹.' : 'Votre panier est actuellement vide.'}
+                  {locale === 'ar' ? 'سلتك فارغة حالياً.' : 'Votre panier est actuellement vide.'}
                 </p>
               ) : (
                 <>
                   <div className="space-y-3">
-                    {items.map((item) => {
-                      const title = locale === 'ar' ? item.titleAr : locale === 'en' ? item.titleEn : item.titleFr;
-                      return (
-                        <div key={`${item.productId}-${item.size}-${item.colorName || ''}`} className="flex gap-3 bg-white p-3 rounded-2xl border border-black/8">
-                          <div className="relative w-16 h-20 rounded-xl overflow-hidden shrink-0">
-                            <Image src={item.image} alt={title} fill className="object-cover" />
-                          </div>
-                          <div className="flex-1 flex flex-col justify-between">
-                            <div className="flex justify-between items-start gap-1">
-                              <div>
-                                <h4 className="font-medium text-xs line-clamp-1">{title}</h4>
-                                <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: settings.accentColor }}>
-                                  Taille: {item.size} {item.colorName && item.colorName !== 'Standard' ? `â€¢ ${item.colorName}` : ''}
-                                </span>
-                              </div>
-                              <button onClick={() => removeItem(item.productId, item.size, item.colorName)} className="opacity-40 hover:text-red-600">
-                                <Trash2 size={14} />
-                              </button>
+                    <AnimatePresence>
+                      {items.map((item) => {
+                        const title = locale === 'ar' ? item.titleAr : locale === 'en' ? item.titleEn : item.titleFr;
+                        return (
+                          <motion.div
+                            layout
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, x: 30 }}
+                            key={`${item.productId}-${item.size}-${item.colorName || ''}`}
+                            className="flex gap-3 bg-white p-3 rounded-2xl border border-black/8"
+                          >
+                            <div className="relative w-16 h-20 rounded-xl overflow-hidden shrink-0">
+                              <Image src={item.image} alt={title} fill className="object-cover" />
                             </div>
-                            <div className="flex items-center justify-between mt-2">
-                              <div className="flex items-center gap-2 border border-black/15 rounded-full px-2 py-0.5">
-                                <button onClick={() => updateQty(item.productId, item.size, -1, item.colorName)} className="p-0.5"><Minus size={10} /></button>
-                                <span className="text-xs font-semibold">{item.quantity}</span>
-                                <button onClick={() => updateQty(item.productId, item.size, 1, item.colorName)} className="p-0.5"><Plus size={10} /></button>
+                            <div className="flex-1 flex flex-col justify-between">
+                              <div className="flex justify-between items-start gap-1">
+                                <div>
+                                  <h4 className="font-medium text-xs line-clamp-1">{title}</h4>
+                                  <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: settings.accentColor }}>
+                                    Taille: {item.size} {item.colorName && item.colorName !== 'Standard' ? `• ${item.colorName}` : ''}
+                                  </span>
+                                </div>
+                                <button onClick={() => removeItem(item.productId, item.size, item.colorName)} className="opacity-40 hover:text-red-600">
+                                  <Trash2 size={14} />
+                                </button>
                               </div>
-                              <span className="text-xs font-bold">{(item.priceDzd * item.quantity).toLocaleString()} DZD</span>
+                              <div className="flex items-center justify-between mt-2">
+                                <div className="flex items-center gap-2 border border-black/15 rounded-full px-2 py-0.5">
+                                  <button onClick={() => updateQty(item.productId, item.size, -1, item.colorName)} className="p-0.5"><Minus size={10} /></button>
+                                  <span className="text-xs font-semibold">{item.quantity}</span>
+                                  <button onClick={() => updateQty(item.productId, item.size, 1, item.colorName)} className="p-0.5"><Plus size={10} /></button>
+                                </div>
+                                <span className="text-xs font-bold">{(item.priceDzd * item.quantity).toLocaleString()} DZD</span>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
                   </div>
 
                   {/* Promo Code */}
@@ -405,7 +457,7 @@ export function CartDrawer() {
                       type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder={locale === 'ar' ? 'Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„' : 'Nom et PrÃ©nom'}
+                      placeholder={locale === 'ar' ? 'الاسم الكامل' : 'Nom et Prénom'}
                       className="w-full px-4 py-2.5 rounded-xl bg-white border border-black/15 text-xs focus:outline-none"
                     />
 
@@ -421,7 +473,7 @@ export function CartDrawer() {
                     <div className="space-y-1">
                       <div className="flex justify-between items-center text-[10px] uppercase tracking-wider opacity-60 font-semibold">
                         <span>{t('checkout.wilaya')}</span>
-                        {(loadingFee || loadingGeo) && <span className="animate-pulse">Chargement E-com...</span>}
+                        {(loadingFee || loadingGeo) && <span className="animate-pulse">Calcul en direct...</span>}
                       </div>
                       <select
                         value={wilayaCode}
@@ -436,7 +488,6 @@ export function CartDrawer() {
                       </select>
                     </div>
 
-                    {/* Home vs Stop Desk */}
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       <button
                         type="button"
@@ -473,7 +524,7 @@ export function CartDrawer() {
                           >
                             {communes.map((c) => (
                               <option key={c.id} value={c.commune}>
-                                {c.commune} ({c.code_postal})
+                                {c.commune}
                               </option>
                             ))}
                           </select>
@@ -496,32 +547,79 @@ export function CartDrawer() {
                         />
                       </>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-2 relative">
                         {stopdesks.length > 0 ? (
                           <>
-                            <select
-                              required
-                              value={stopdeskCode}
-                              onChange={(e) => setStopdeskCode(e.target.value)}
-                              className="w-full px-3 py-2.5 rounded-xl bg-white border border-black/15 text-xs font-medium"
+                            <button
+                              type="button"
+                              onClick={() => setDeskMenuOpen(!deskMenuOpen)}
+                              className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-black/15 text-xs font-medium flex items-center justify-between gap-2 text-start hover:border-black/35 transition-colors"
                             >
-                              {stopdesks.map((d) => (
-                                <option key={d.id} value={d.code_stopdesk}>
-                                  [{d.code_stopdesk}] {d.nom_bureau} â€” {d.commune}
-                                </option>
-                              ))}
-                            </select>
+                              <span className="flex items-center gap-2 truncate">
+                                <Building2 size={13} style={{ color: settings.accentColor }} className="shrink-0" />
+                                <span className="truncate">
+                                  {selectedDesk
+                                    ? formatDeskLabel(selectedDesk.nom_bureau, selectedDesk.commune)
+                                    : 'Choisir un bureau Stop Desk'}
+                                </span>
+                              </span>
+                              <ChevronDown size={14} className={`shrink-0 transition-transform ${deskMenuOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            <AnimatePresence>
+                              {deskMenuOpen && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -6 }}
+                                  className="bg-white border border-black/15 rounded-2xl shadow-xl p-2 space-y-1.5 max-h-56 overflow-y-auto"
+                                >
+                                  {stopdesks.length > 5 && (
+                                    <input
+                                      type="text"
+                                      value={deskSearch}
+                                      onChange={(e) => setDeskSearch(e.target.value)}
+                                      placeholder="Chercher un bureau..."
+                                      className="w-full px-3 py-1.5 rounded-xl bg-stone-50 border border-black/10 text-xs focus:outline-none"
+                                    />
+                                  )}
+                                  {filteredDesks.map((d) => {
+                                    const active = d.code_stopdesk === stopdeskCode;
+                                    return (
+                                      <button
+                                        key={d.id}
+                                        type="button"
+                                        onClick={() => {
+                                          setStopdeskCode(d.code_stopdesk);
+                                          setDeskMenuOpen(false);
+                                        }}
+                                        className={`w-full text-start px-3 py-2 rounded-xl text-xs transition-colors flex items-center justify-between gap-2 ${
+                                          active ? 'bg-black text-white' : 'hover:bg-stone-100'
+                                        }`}
+                                      >
+                                        <div className="min-w-0">
+                                          <p className="font-semibold truncate">{formatDeskLabel(d.nom_bureau, d.commune)}</p>
+                                          <p className={`text-[10px] truncate ${active ? 'text-white/75' : 'opacity-60'}`}>{d.adresse}</p>
+                                        </div>
+                                        {active && <Check size={13} className="shrink-0" />}
+                                      </button>
+                                    );
+                                  })}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+
                             {selectedDesk && (
-                              <div className="bg-white p-2.5 rounded-xl border border-black/10 text-[11px] space-y-1">
-                                <p className="font-semibold flex items-center gap-1">
-                                  <MapPin size={11} style={{ color: settings.accentColor }} />
-                                  {selectedDesk.nom_bureau} ({selectedDesk.code_stopdesk})
+                              <div className="bg-white p-3 rounded-2xl border border-black/10 text-[11px] space-y-1">
+                                <p className="font-semibold flex items-center gap-1.5">
+                                  <MapPin size={12} style={{ color: settings.accentColor }} />
+                                  {formatDeskLabel(selectedDesk.nom_bureau, selectedDesk.commune)}
                                 </p>
                                 <p className="opacity-70">{selectedDesk.adresse}</p>
-                                {selectedDesk.tel_contact && <p className="opacity-70">TÃ©l : {selectedDesk.tel_contact}</p>}
+                                {selectedDesk.tel_contact && <p className="opacity-70">Tél : {selectedDesk.tel_contact}</p>}
                                 {selectedDesk.adresse_maps && (
-                                  <a href={selectedDesk.adresse_maps} target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline inline-block">
-                                    Voir sur Google Maps
+                                  <a href={selectedDesk.adresse_maps} target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline inline-block font-medium">
+                                    Voir l’emplacement sur Google Maps
                                   </a>
                                 )}
                               </div>
@@ -543,7 +641,7 @@ export function CartDrawer() {
                     <div className="flex items-center justify-between text-[11px] bg-emerald-50 px-3 py-2 rounded-xl font-medium" style={{ color: settings.primaryColor }}>
                       <div className="flex items-center gap-1.5">
                         <Clock size={12} />
-                        <span>DÃ©lai estimÃ© : <strong>{deliveryDelay}</strong></span>
+                        <span>Délai estimé : <strong>{deliveryDelay}</strong></span>
                       </div>
                       <span className="text-[10px] uppercase tracking-wider font-bold" style={{ color: settings.accentColor }}>E-com Delivery</span>
                     </div>
@@ -575,7 +673,8 @@ export function CartDrawer() {
                   <span>{totalDzd.toLocaleString()} DZD</span>
                 </div>
 
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
                   type="submit"
                   form="cod-checkout-form"
                   disabled={submitting}
@@ -583,8 +682,8 @@ export function CartDrawer() {
                   className="w-full mt-2 py-4 rounded-full text-white text-xs uppercase tracking-[0.18em] font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60 shadow-lg"
                 >
                   {submitting && <Loader2 size={16} className="animate-spin" />}
-                  <span>{locale === 'ar' ? 'ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø·Ù„Ø¨ Ø§Ù„Ø¢Ù†' : 'Confirmer la Commande (COD)'}</span>
-                </button>
+                  <span>{locale === 'ar' ? 'تأكيد الطلب الآن' : 'Confirmer la Commande (COD)'}</span>
+                </motion.button>
               </div>
             )}
           </motion.aside>
