@@ -1,13 +1,15 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Sparkles, Truck, ShieldCheck } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Sparkles, Truck, ShieldCheck, Eye } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useCart } from './CartContext';
 
 export interface ProductCardItem {
   id: string;
+  slug?: string;
   titleFr: string;
   titleAr: string;
   titleEn: string;
@@ -27,11 +29,9 @@ export function HeroSection({ products }: { products: ProductCardItem[] }) {
     <div className="overflow-hidden">
       {/* Editorial Hero */}
       <section className="relative min-h-[85vh] flex items-center pt-28 pb-16">
-        {/* Subtle Ambient Gold Glow */}
         <div className="absolute top-10 right-10 w-96 h-96 bg-[#C5A059]/15 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-6 md:px-12 w-full grid md:grid-cols-12 gap-12 items-center">
-          {/* Left Text */}
           <div className="md:col-span-7 space-y-6 z-10 text-start">
             <motion.div
               initial={{ opacity: 0, y: 15 }}
@@ -78,29 +78,18 @@ export function HeroSection({ products }: { products: ProductCardItem[] }) {
               </motion.a>
             </motion.div>
 
-            {/* Trust Badges */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.45, duration: 0.8 }}
               className="pt-8 grid grid-cols-3 gap-4 border-t border-[#141414]/10 text-xs text-[#141414]/75"
             >
-              <div className="flex items-center gap-2">
-                <Truck size={16} className="text-[#C5A059] shrink-0" />
-                <span>{t('features.delivery')}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={16} className="text-[#C5A059] shrink-0" />
-                <span>{t('features.cod')}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Sparkles size={16} className="text-[#C5A059] shrink-0" />
-                <span>{t('features.craft')}</span>
-              </div>
+              <div className="flex items-center gap-2"><Truck size={16} className="text-[#C5A059] shrink-0" /><span>{t('features.delivery')}</span></div>
+              <div className="flex items-center gap-2"><ShieldCheck size={16} className="text-[#C5A059] shrink-0" /><span>{t('features.cod')}</span></div>
+              <div className="flex items-center gap-2"><Sparkles size={16} className="text-[#C5A059] shrink-0" /><span>{t('features.craft')}</span></div>
             </motion.div>
           </div>
 
-          {/* Right Luxury Photo Card (Locked dimensions, no full-screen stretch!) */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -135,8 +124,8 @@ export function HeroSection({ products }: { products: ProductCardItem[] }) {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {products.map((item, idx) => {
-            const title =
-              locale === 'ar' ? item.titleAr : locale === 'en' ? item.titleEn : item.titleFr;
+            const title = locale === 'ar' ? item.titleAr : locale === 'en' ? item.titleEn : item.titleFr;
+            const linkHref = item.slug ? `/${locale}/products/${item.slug}` : `/${locale}/products/${item.id}`;
 
             return (
               <motion.article
@@ -148,13 +137,26 @@ export function HeroSection({ products }: { products: ProductCardItem[] }) {
                 className="group"
               >
                 <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-stone-200 mb-4 shadow-sm border border-[#141414]/5">
-                  <Image
-                    src={item.img}
-                    alt={title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                  <Link href={linkHref}>
+                    <Image
+                      src={item.img}
+                      alt={title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  </Link>
+
+                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Link
+                      href={linkHref}
+                      className="p-2.5 rounded-full bg-white/90 text-[#141414] hover:bg-[#141414] hover:text-white transition-colors shadow-md block"
+                      title="Voir le produit"
+                    >
+                      <Eye size={16} />
+                    </Link>
+                  </div>
+
                   <div className="absolute inset-x-3 bottom-3 bg-white/95 backdrop-blur-md rounded-2xl p-3 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 shadow-xl">
                     <p className="text-[10px] uppercase tracking-widest text-center text-[#141414]/60 mb-2 font-medium">
                       {t('product.selectSize')}
@@ -184,7 +186,9 @@ export function HeroSection({ products }: { products: ProductCardItem[] }) {
                 </div>
 
                 <div className="flex items-center justify-between px-1">
-                  <h3 className="font-medium text-base text-[#141414]">{title}</h3>
+                  <Link href={linkHref} className="hover:text-[#9A7835] transition-colors">
+                    <h3 className="font-medium text-base text-[#141414]">{title}</h3>
+                  </Link>
                   <span className="text-sm font-semibold text-[#9A7835]">
                     {item.priceDzd.toLocaleString()} {t('product.currency')}
                   </span>

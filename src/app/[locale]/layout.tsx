@@ -6,6 +6,7 @@ import { CartProvider } from '@/components/shop/CartContext';
 import { CartDrawer } from '@/components/shop/CartDrawer';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { WhatsAppButton } from '@/components/layout/WhatsAppButton';
 import '../globals.css';
 
 const serif = Cormorant_Garamond({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-serif' });
@@ -33,6 +34,7 @@ export default async function LocaleLayout({
               <CartDrawer />
               <main className="min-h-screen">{children}</main>
               <Footer />
+              <WhatsAppButton />
             </CartProvider>
           </SmoothProvider>
         </NextIntlClientProvider>
