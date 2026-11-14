@@ -84,12 +84,11 @@ export function HeroSection({
     <div className="overflow-hidden">
       {settings.showHero && (
         <section className="relative min-h-[86vh] flex items-center pt-28 pb-16">
-          {/* Ambient Animated Orbs */}
           <motion.div
             animate={{ y: [0, -18, 0], scale: [1, 1.07, 1] }}
             transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
             style={{ backgroundColor: `${settings.accentColor}26` }}
-            className="absolute top-12 right-10 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+            className="absolute top-12 right-10 w-96 h-96 rounded-full ur-3xl pointer-events-none"
           />
           <motion.div
             animate={{ y: [0, 16, 0], scale: [1, 1.05, 1] }}
@@ -217,7 +216,6 @@ export function HeroSection({
         </section>
       )}
 
-      {/* Animated Editorial Marquee Strip */}
       <div
         style={{ backgroundColor: settings.primaryColor }}
         className="py-3.5 text-[#FAF8F5] overflow-hidden border-y border-white/15"
@@ -236,7 +234,6 @@ export function HeroSection({
         </motion.div>
       </div>
 
-      {/* Collections + Animated Search & Category Filter */}
       <section id="collections" className="max-w-7xl mx-auto px-6 md:px-12 py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
