@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { ALGERIA_WILAYAS } from '@/lib/wilayas';
 import { getSiteSettings } from '@/lib/settings';
-import { getCachedEcomTarifs, getCachedEcomWilayas, getEcomCredentials } from '@/lib/ecom';
+import { getCachedEcomTarifs, getCachedEcomWilayas, getEcomCredentials, getLastEcomTarifsError } from '@/lib/ecom';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,6 +62,7 @@ export async function GET(req: NextRequest) {
       ecomConfigured: getEcomCredentials().configured,
       serviceFee: liveTarifs?.service ?? 0,
       packagingFee: liveTarifs?.emballage ?? 0,
+      ecomDebug: getLastEcomTarifsError(),
     });
   }
 

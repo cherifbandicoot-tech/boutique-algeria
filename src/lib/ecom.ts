@@ -1,8 +1,8 @@
 const ECOM_BASE_URL = 'https://ecom-dz.com/api_v2';
 
 export function getEcomCredentials() {
-  const apiKey = process.env.ECOM_API_KEY || process.env.ECOM_API_ID || '';
-  const apiToken = process.env.ECOM_API_TOKEN || '';
+  const apiKey = (process.env.ECOM_API_KEY || process.env.ECOM_API_ID || '').trim();
+  const apiToken = (process.env.ECOM_API_TOKEN || '').trim();
   return { apiKey, apiToken, configured: Boolean(apiKey && apiToken) };
 }
 
@@ -24,7 +24,7 @@ export async function ecomFetch<T = unknown>(
 ): Promise<{ ok: boolean; status: number; data: T; limits: EcomRateLimits }> {
   const { apiKey, apiToken, configured } = getEcomCredentials();
   if (!configured) {
-    throw new Error('ClÃ©s E-com Delivery (ECOM_API_ID / ECOM_API_TOKEN) non configurÃ©es dans .env');
+    throw new Error('Clés E-com Delivery (ECOM_API_ID / ECOM_API_TOKEN) non configurées');
   }
 
   const res = await fetch(`${ECOM_BASE_URL}${path}`, {
@@ -32,6 +32,7 @@ export async function ecomFetch<T = unknown>(
     headers: {
       'X-API-Key': apiKey,
       'X-API-Token': apiToken,
+      'User-Agent': 'MaisonNerava-Storefront/2.0',
       Accept: options.rawText ? 'text/html,application/json' : 'application/json',
       ...(options.body ? { 'Content-Type': 'application/json' } : {}),
     },
@@ -71,7 +72,6 @@ export function mapEcomSituationToOrderStatus(idSituation?: number | null, situa
   return null;
 }
 
-// Simple in-memory caches for high-speed UX
 const cache = {
   tarifs: null as {
     service: number;
@@ -79,6 +79,7 @@ const cache = {
     byWilaya: Record<number, { domicile: number; stopdesk: number; annuler: number }>;
     expiresAt: number;
   } | null,
+  lastTarifsError: null as string | null,
   wilayas: null as {
     items: Array<{ id: number; libelle: string; domicile: boolean; stopdesk: boolean }>;
     expiresAt: number;
@@ -87,17 +88,25 @@ const cache = {
   stopdesks: new Map<number, { items: Array<{ id: number; id_wilaya: number; nom_bureau: string; code_stopdesk: string; adresse: string; adresse_maps?: string; tel_contact?: string; commune: string }>; expiresAt: number }>(),
 };
 
+export function getLastEcomTarifsError() {
+  return cache.lastTarifsError;
+}
+
 export async function getCachedEcomTarifs(forceRefresh = false) {
   const now = Date.now();
   if (!forceRefresh && cache.tarifs && now < cache.tarifs.expiresAt) return cache.tarifs;
   const { configured } = getEcomCredentials();
-  if (!configured) return null;
+  if (!configured) {
+    cache.lastTarifsError = 'missing_credentials';
+    return null;
+  }
 
   try {
     const res = await ecomFetch<{
       service?: number;
       emballage?: number;
       wilayas?: Array<{ wilaya: number; domicile: number; stopdesk: number; annuler: number }>;
+      error?: { code?: string; message?: string };
     }>('/tarifs', { timeoutMs: 8000 });
 
     if (res.ok && Array.isArray(res.data?.wilayas)) {
@@ -117,10 +126,12 @@ export async function getCachedEcomTarifs(forceRefresh = false) {
         byWilaya,
         expiresAt: now + 1000 * 60 * 30,
       };
+      cache.lastTarifsError = null;
       return cache.tarifs;
     }
-  } catch {
-    // fallback silently
+    cache.lastTarifsError = `HTTP ${res.status}: ${res.data?.error?.code || res.data?.error?.message || 'unexpected_shape'}`;
+  } catch (err) {
+    cache.lastTarifsError = err instanceof Error ? err.message : 'fetch_error';
   }
   return null;
 }
