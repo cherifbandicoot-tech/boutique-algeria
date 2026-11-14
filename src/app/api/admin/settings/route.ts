@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
-import { getSiteSettings } from '@/lib/settings';
+import { getSiteSettings, invalidateSiteSettingsCache } from '@/lib/settings';
 
 export async function GET() {
   const admin = await getAdminSession();
@@ -51,5 +51,6 @@ export async function PUT(req: NextRequest) {
     create: { id: 'default', ...data },
   });
 
+  invalidateSiteSettingsCache();
   return NextResponse.json({ settings });
 }

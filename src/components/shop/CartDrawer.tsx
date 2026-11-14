@@ -77,6 +77,7 @@ export function CartDrawer() {
   const [deliveryDelay, setDeliveryDelay] = useState<string>('24h (Express)');
 
   useEffect(() => {
+    if (!isOpen) return;
     let cancelled = false;
     async function loadWilayaData() {
       setLoadingFee(true);
@@ -122,7 +123,7 @@ export function CartDrawer() {
     return () => {
       cancelled = true;
     };
-  }, [wilayaCode, settings.defaultDeliveryDelay]);
+  }, [isOpen, wilayaCode, settings.defaultDeliveryDelay]);
 
   const selectedWilaya = ALGERIA_WILAYAS.find((w) => w.code === wilayaCode) || ALGERIA_WILAYAS[15];
   const selectedDesk = stopdesks.find((d) => d.code_stopdesk === stopdeskCode);
@@ -151,7 +152,7 @@ export function CartDrawer() {
         setPromoMsg(data.error || 'Code invalide');
       } else {
         setAppliedPromo({ code: data.code, discountDzd: data.discountDzd });
-        setPromoMsg(`Code ${data.code} appliqué (-${data.discountDzd.toLocaleString()} DZD)`);
+        setPromoMsg(`Code ${data.code} appliquÃ© (-${data.discountDzd.toLocaleString()} DZD)`);
       }
     } finally {
       setCheckingPromo(false);
@@ -203,7 +204,7 @@ export function CartDrawer() {
         setPromoInput('');
       }
     } catch {
-      setErrorMsg('Erreur de connexion. Veuillez réessayer.');
+      setErrorMsg('Erreur de connexion. Veuillez rÃ©essayer.');
     } finally {
       setSubmitting(false);
     }
@@ -237,7 +238,7 @@ export function CartDrawer() {
                 <h2 className="font-serif text-2xl">{t('nav.cart')}</h2>
                 <div className="flex items-center gap-1.5 text-[11px] font-semibold mt-0.5" style={{ color: settings.primaryColor }}>
                   <Sparkles size={11} style={{ color: settings.accentColor }} />
-                  <span>E-com Delivery Officiel • 58 Wilayas</span>
+                  <span>E-com Delivery Officiel â€¢ 58 Wilayas</span>
                 </div>
               </div>
               <button
@@ -254,7 +255,7 @@ export function CartDrawer() {
             {freeShippingThreshold > 0 && items.length > 0 && !receipt && (
               <div className="px-5 py-2.5 bg-emerald-50 border-b border-emerald-200/70 text-[11px] text-emerald-950">
                 {isFreeShipping ? (
-                  <p className="font-semibold text-center">Livraison GRATUITE débloquée sur votre commande !</p>
+                  <p className="font-semibold text-center">Livraison GRATUITE dÃ©bloquÃ©e sur votre commande !</p>
                 ) : (
                   <p className="text-center">
                     Plus que <strong>{(freeShippingThreshold - netSubtotal).toLocaleString()} DZD</strong> pour la livraison gratuite !
@@ -269,7 +270,7 @@ export function CartDrawer() {
                   <div className="text-center space-y-2">
                     <CheckCircle2 size={48} className="mx-auto" style={{ color: settings.primaryColor }} />
                     <h3 className="font-serif text-2xl">
-                      {locale === 'ar' ? 'تم تسجيل طلبك بنجاح!' : 'Commande Confirmée !'}
+                      {locale === 'ar' ? 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø·Ù„Ø¨Ùƒ Ø¨Ù†Ø¬Ø§Ø­!' : 'Commande ConfirmÃ©e !'}
                     </h3>
                     <p className="text-xs font-mono font-bold bg-stone-100 inline-block px-3 py-1 rounded-full">
                       {receipt.orderNumber}
@@ -279,7 +280,7 @@ export function CartDrawer() {
                   <div className="border-t border-b border-black/10 py-3 space-y-2 text-xs">
                     {receipt.items.map((it, idx) => (
                       <div key={idx} className="flex justify-between">
-                        <span>{it.title} ({it.size}) × {it.quantity}</span>
+                        <span>{it.title} ({it.size}) Ã— {it.quantity}</span>
                         <span className="font-semibold">{(it.unitPriceDzd * it.quantity).toLocaleString()} DZD</span>
                       </div>
                     ))}
@@ -297,20 +298,20 @@ export function CartDrawer() {
                       </div>
                     )}
                     <div className="flex justify-between opacity-80">
-                      <span>Livraison ({receipt.wilayaName} • {receipt.deliveryType === 'HOME' ? 'Domicile' : 'Stop Desk'})</span>
+                      <span>Livraison ({receipt.wilayaName} â€¢ {receipt.deliveryType === 'HOME' ? 'Domicile' : 'Stop Desk'})</span>
                       <span>{receipt.shippingDzd === 0 ? 'GRATUITE' : `${receipt.shippingDzd.toLocaleString()} DZD`}</span>
                     </div>
                     {receipt.stopdeskName && (
                       <p className="text-[11px] opacity-70">Bureau : {receipt.stopdeskName}</p>
                     )}
                     <div className="flex justify-between text-sm font-bold pt-2 border-t border-black/10">
-                      <span>Total à payer (COD)</span>
+                      <span>Total Ã  payer (COD)</span>
                       <span>{receipt.totalDzd.toLocaleString()} DZD</span>
                     </div>
                   </div>
 
                   <p className="text-[11px] opacity-70 text-center">
-                    Délai estimé : <strong>{receipt.delay}</strong>. Notre équipe vous contactera par téléphone pour confirmer avant l’expédition.
+                    DÃ©lai estimÃ© : <strong>{receipt.delay}</strong>. Notre Ã©quipe vous contactera par tÃ©lÃ©phone pour confirmer avant lâ€™expÃ©dition.
                   </p>
 
                   <Link
@@ -323,12 +324,12 @@ export function CartDrawer() {
                     className="w-full py-3 rounded-full text-white text-xs uppercase tracking-widest font-semibold flex items-center justify-center gap-2"
                   >
                     <PackageSearch size={14} />
-                    <span>{locale === 'ar' ? 'تتبع طلبي' : 'Suivre ma commande'}</span>
+                    <span>{locale === 'ar' ? 'ØªØªØ¨Ø¹ Ø·Ù„Ø¨ÙŠ' : 'Suivre ma commande'}</span>
                   </Link>
                 </div>
               ) : items.length === 0 ? (
                 <p className="text-center text-sm opacity-60 py-20">
-                  {locale === 'ar' ? 'سلتك فارغة حالياً.' : 'Votre panier est actuellement vide.'}
+                  {locale === 'ar' ? 'Ø³Ù„ØªÙƒ ÙØ§Ø±ØºØ© Ø­Ø§Ù„ÙŠØ§Ù‹.' : 'Votre panier est actuellement vide.'}
                 </p>
               ) : (
                 <>
@@ -345,7 +346,7 @@ export function CartDrawer() {
                               <div>
                                 <h4 className="font-medium text-xs line-clamp-1">{title}</h4>
                                 <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: settings.accentColor }}>
-                                  Taille: {item.size} {item.colorName && item.colorName !== 'Standard' ? `• ${item.colorName}` : ''}
+                                  Taille: {item.size} {item.colorName && item.colorName !== 'Standard' ? `â€¢ ${item.colorName}` : ''}
                                 </span>
                               </div>
                               <button onClick={() => removeItem(item.productId, item.size, item.colorName)} className="opacity-40 hover:text-red-600">
@@ -404,7 +405,7 @@ export function CartDrawer() {
                       type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder={locale === 'ar' ? 'الاسم الكامل' : 'Nom et Prénom'}
+                      placeholder={locale === 'ar' ? 'Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„' : 'Nom et PrÃ©nom'}
                       className="w-full px-4 py-2.5 rounded-xl bg-white border border-black/15 text-xs focus:outline-none"
                     />
 
@@ -506,7 +507,7 @@ export function CartDrawer() {
                             >
                               {stopdesks.map((d) => (
                                 <option key={d.id} value={d.code_stopdesk}>
-                                  [{d.code_stopdesk}] {d.nom_bureau} — {d.commune}
+                                  [{d.code_stopdesk}] {d.nom_bureau} â€” {d.commune}
                                 </option>
                               ))}
                             </select>
@@ -517,7 +518,7 @@ export function CartDrawer() {
                                   {selectedDesk.nom_bureau} ({selectedDesk.code_stopdesk})
                                 </p>
                                 <p className="opacity-70">{selectedDesk.adresse}</p>
-                                {selectedDesk.tel_contact && <p className="opacity-70">Tél : {selectedDesk.tel_contact}</p>}
+                                {selectedDesk.tel_contact && <p className="opacity-70">TÃ©l : {selectedDesk.tel_contact}</p>}
                                 {selectedDesk.adresse_maps && (
                                   <a href={selectedDesk.adresse_maps} target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline inline-block">
                                     Voir sur Google Maps
@@ -542,7 +543,7 @@ export function CartDrawer() {
                     <div className="flex items-center justify-between text-[11px] bg-emerald-50 px-3 py-2 rounded-xl font-medium" style={{ color: settings.primaryColor }}>
                       <div className="flex items-center gap-1.5">
                         <Clock size={12} />
-                        <span>Délai estimé : <strong>{deliveryDelay}</strong></span>
+                        <span>DÃ©lai estimÃ© : <strong>{deliveryDelay}</strong></span>
                       </div>
                       <span className="text-[10px] uppercase tracking-wider font-bold" style={{ color: settings.accentColor }}>E-com Delivery</span>
                     </div>
@@ -582,7 +583,7 @@ export function CartDrawer() {
                   className="w-full mt-2 py-4 rounded-full text-white text-xs uppercase tracking-[0.18em] font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60 shadow-lg"
                 >
                   {submitting && <Loader2 size={16} className="animate-spin" />}
-                  <span>{locale === 'ar' ? 'تأكيد الطلب الآن' : 'Confirmer la Commande (COD)'}</span>
+                  <span>{locale === 'ar' ? 'ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø·Ù„Ø¨ Ø§Ù„Ø¢Ù†' : 'Confirmer la Commande (COD)'}</span>
                 </button>
               </div>
             )}
