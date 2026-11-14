@@ -1,0 +1,39 @@
+{
+  "brand": "MAISON YASMINE",
+  "nav": {
+    "home": "Home",
+    "collections": "Collections",
+    "newArrivals": "New Arrivals",
+    "about": "Our Story",
+    "cart": "Bag"
+  },
+  "hero": {
+    "badge": "2026 Couture Collection",
+    "title": "Algerian Elegance Reimagined",
+    "subtitle": "Hand-embroidered Karakou, luxury caftans, and modern modest wear delivered across all 58 wilayas.",
+    "cta": "Explore Collection",
+    "secondaryCta": "Bespoke Tailoring"
+  },
+  "features": {
+    "delivery": "58 Wilayas Delivery",
+    "cod": "Cash on Delivery",
+    "craft": "Artisanal Heritage"
+  },
+  "product": {
+    "currency": "DZD",
+    "addToCart": "Add to Bag",
+    "quickOrder": "Order Now",
+    "outOfStock": "Out of Stock",
+    "selectSize": "Select Size"
+  },
+  "checkout": {
+    "title": "Complete Your Order",
+    "cod": "Cash on Delivery",
+    "cib": "CIB / Edahabia Card",
+    "wilaya": "Wilaya",
+    "commune": "Commune",
+    "phone": "Phone Number (05 / 06 / 07)",
+    "homeDelivery": "Home Delivery",
+    "stopDesk": "Stop Desk Pickup"
+  }
+}

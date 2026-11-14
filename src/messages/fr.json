@@ -1,0 +1,39 @@
+{
+  "brand": "MAISON YASMINE",
+  "nav": {
+    "home": "Accueil",
+    "collections": "Collections",
+    "newArrivals": "Nouveautés",
+    "about": "Notre Histoire",
+    "cart": "Panier"
+  },
+  "hero": {
+    "badge": "Nouvelle Collection 2026",
+    "title": "L'Élégance Algérienne Réinventée",
+    "subtitle": "Karakou brodés main, caftans fluides et prêt-à-porter féminin livrés avec soin dans les 58 wilayas.",
+    "cta": "Découvrir la Collection",
+    "secondaryCta": "Sur Mesure"
+  },
+  "features": {
+    "delivery": "Livraison 58 Wilayas",
+    "cod": "Paiement à la livraison",
+    "craft": "Savoir-faire Artisanal"
+  },
+  "product": {
+    "currency": "DZD",
+    "addToCart": "Ajouter au panier",
+    "quickOrder": "Commander maintenant",
+    "outOfStock": "Rupture de stock",
+    "selectSize": "Choisir la taille"
+  },
+  "checkout": {
+    "title": "Finaliser la commande",
+    "cod": "Paiement à la livraison (COD)",
+    "cib": "Carte CIB / Edahabia",
+    "wilaya": "Wilaya",
+    "commune": "Commune",
+    "phone": "Téléphone (05 / 06 / 07)",
+    "homeDelivery": "Livraison à domicile",
+    "stopDesk": "Stop Desk (Bureau)"
+  }
+}

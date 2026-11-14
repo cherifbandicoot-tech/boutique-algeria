@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+:root {
+  --bg-ivory: #FAF8F5;
+  --text-obsidian: #141414;
+  --accent-gold: #C5A059;
+  --accent-emerald: #13382C;
+}
+
+body {
+  background-color: var(--bg-ivory);
+  color: var(--text-obsidian);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: #C5A059;
+  color: #FFFFFF;
+}
