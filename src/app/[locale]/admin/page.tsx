@@ -120,17 +120,17 @@ export default function AdminDashboard() {
   const [promos, setPromos] = useState<AdminPromo[]>([]);
   const [site, setSite] = useState<SiteSettingsData>(DEFAULT_SITE_SETTINGS);
 
-  const [ecomAccount, setEcomAccount] = useState<Record<string, unknown> | null>(null);
+  const [ecomAccount, setEcomAccount] = useState<{ id_fournisseur?: number; nom_fournisseur?: string; stock?: boolean; colis_0da?: boolean } | null>(null);
   const [ecomLimits, setEcomLimits] = useState<Record<string, string | null> | null>(null);
-  const [ecomResume, setEcomResume] = useState<Record<string, unknown> | null>(null);
-  const [ecomPaiements, setEcomPaiements] = useState<Array<Record<string, unknown>>>([]);
-  const [webhookSub, setWebhookSub] = useState<Record<string, unknown> | null>(null);
+  const [ecomResume, setEcomResume] = useState<{ total?: number; taux_livraison?: number; taux_stopdesk?: number } | null>(null);
+  const [ecomPaiements, setEcomPaiements] = useState<Array<{ code?: string; date?: string; colis_livres?: number; nb_colis?: number; montant?: number }>>([]);
+  const [webhookSub, setWebhookSub] = useState<{ actif?: boolean; url?: string; events?: string[] } | null>(null);
   const [busyAction, setBusyAction] = useState('');
 
   const [orderSearch, setOrderSearch] = useState('');
   const [orderStatusFilter, setOrderStatusFilter] = useState('ALL');
   const [pickupForm, setPickupForm] = useState({ nb_colis: 5, type_vehicule: 2, commune: 'Cheraga', heure: '14h00', note: '' });
-  const [inspectDetail, setInspectDetail] = useState<Record<string, unknown> | null>(null);
+  const [inspectDetail, setInspectDetail] = useState<{ tracking?: string; [key: string]: unknown } | null>(null);
 
   // Edit Parcel Modal state
   const [editParcel, setEditParcel] = useState<{
