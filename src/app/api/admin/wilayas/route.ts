@@ -8,19 +8,25 @@ export async function GET() {
   const admin = await getAdminSession();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const dbRows = await prisma.wilayaShipping.findMany({ orderBy: { code: 'asc' } });
+  const [dbRows, liveTarifs] = await Promise.all([
+    prisma.wilayaShipping.findMany({ orderBy: { code: 'asc' } }),
+    getCachedEcomTarifs(),
+  ]);
   const dbMap = new Map(dbRows.map((w) => [w.code, w]));
 
   const wilayas = ALGERIA_WILAYAS.map((w) => {
     const db = dbMap.get(w.code);
+    const live = liveTarifs?.byWilaya[w.code];
+    const useCustom = Boolean(db?.customOverride);
     return {
       code: w.code,
       nameFr: db?.nameFr || w.nameFr,
       nameAr: db?.nameAr || w.nameAr,
-      homeDeliveryDzd: db?.homeDeliveryDzd ?? w.homeDeliveryDzd,
-      stopDeskDzd: db?.stopDeskDzd ?? w.stopDeskDzd,
+      homeDeliveryDzd: useCustom ? db!.homeDeliveryDzd : (live && live.domicile > 0 ? live.domicile : db?.homeDeliveryDzd ?? w.homeDeliveryDzd),
+      stopDeskDzd: useCustom ? db!.stopDeskDzd : (live && live.stopdesk > 0 ? live.stopdesk : db?.stopDeskDzd ?? w.stopDeskDzd),
       delay: db?.delay || w.delay,
       isActive: db?.isActive ?? true,
+      customOverride: useCustom,
     };
   });
   return NextResponse.json({ wilayas });
@@ -43,6 +49,7 @@ export async function PUT(req: NextRequest) {
       stopDeskDzd: Number(body.stopDeskDzd ?? def.stopDeskDzd),
       delay: String(body.delay || def.delay),
       isActive: body.isActive !== undefined ? Boolean(body.isActive) : true,
+      customOverride: true,
     },
     create: {
       code: def.code,
@@ -52,6 +59,7 @@ export async function PUT(req: NextRequest) {
       stopDeskDzd: Number(body.stopDeskDzd ?? def.stopDeskDzd),
       delay: String(body.delay || def.delay),
       isActive: body.isActive !== undefined ? Boolean(body.isActive) : true,
+      customOverride: true,
     },
   });
 
@@ -79,6 +87,7 @@ export async function POST() {
         update: {
           homeDeliveryDzd: t.domicile > 0 ? t.domicile : w.homeDeliveryDzd,
           stopDeskDzd: t.stopdesk > 0 ? t.stopdesk : w.stopDeskDzd,
+          customOverride: false,
         },
         create: {
           code: w.code,
@@ -88,6 +97,7 @@ export async function POST() {
           stopDeskDzd: t.stopdesk > 0 ? t.stopdesk : w.stopDeskDzd,
           delay: w.delay,
           isActive: true,
+          customOverride: false,
         },
       });
       updatedCount++;

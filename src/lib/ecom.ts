@@ -24,7 +24,7 @@ export async function ecomFetch<T = unknown>(
 ): Promise<{ ok: boolean; status: number; data: T; limits: EcomRateLimits }> {
   const { apiKey, apiToken, configured } = getEcomCredentials();
   if (!configured) {
-    throw new Error('Clés E-com Delivery (ECOM_API_ID / ECOM_API_TOKEN) non configurées dans .env');
+    throw new Error('ClÃ©s E-com Delivery (ECOM_API_ID / ECOM_API_TOKEN) non configurÃ©es dans .env');
   }
 
   const res = await fetch(`${ECOM_BASE_URL}${path}`, {
@@ -98,7 +98,7 @@ export async function getCachedEcomTarifs(forceRefresh = false) {
       service?: number;
       emballage?: number;
       wilayas?: Array<{ wilaya: number; domicile: number; stopdesk: number; annuler: number }>;
-    }>('/tarifs', { timeoutMs: 4000 });
+    }>('/tarifs', { timeoutMs: 8000 });
 
     if (res.ok && Array.isArray(res.data?.wilayas)) {
       const byWilaya: Record<number, { domicile: number; stopdesk: number; annuler: number }> = {};
@@ -131,7 +131,7 @@ export async function getCachedEcomWilayas() {
   const { configured } = getEcomCredentials();
   if (!configured) return null;
   try {
-    const res = await ecomFetch<Array<{ id: number; libelle: string; domicile: boolean; stopdesk: boolean }>>('/wilayas', { timeoutMs: 4000 });
+    const res = await ecomFetch<Array<{ id: number; libelle: string; domicile: boolean; stopdesk: boolean }>>('/wilayas', { timeoutMs: 8000 });
     if (res.ok && Array.isArray(res.data)) {
       cache.wilayas = { items: res.data, expiresAt: now + 1000 * 60 * 60 };
       return res.data;
@@ -149,7 +149,7 @@ export async function getCachedEcomCommunes(wilayaId: number) {
   try {
     const res = await ecomFetch<Array<{ id: number; id_wilaya: number; commune: string; code_postal: number; livrable: boolean }>>(
       `/communes?id_wilaya=${wilayaId}`,
-      { timeoutMs: 4000 }
+      { timeoutMs: 8000 }
     );
     if (res.ok && Array.isArray(res.data)) {
       const livrables = res.data.filter((c) => c.livrable !== false);
@@ -178,7 +178,7 @@ export async function getCachedEcomStopdesks(wilayaId: number) {
         tel_contact?: string;
         commune: string;
       }>
-    >(`/stopdesks?id_wilaya=${wilayaId}`, { timeoutMs: 4000 });
+    >(`/stopdesks?id_wilaya=${wilayaId}`, { timeoutMs: 8000 });
     if (res.ok && Array.isArray(res.data)) {
       cache.stopdesks.set(wilayaId, { items: res.data, expiresAt: now + 1000 * 60 * 60 * 6 });
       return res.data;

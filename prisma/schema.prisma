@@ -44,13 +44,13 @@ model User {
 model SiteSettings {
   id                       String   @id @default("default")
   brandName                String   @default("MAISON NERAVA")
-  brandNameAr              String   @default("دار نيرافا")
+  brandNameAr              String   @default("Ø¯Ø§Ø± Ù†ÙŠØ±Ø§ÙØ§")
   logoUrl                  String?
   whatsappNumber           String   @default("213770312656")
   contactPhone             String   @default("+213 770 31 26 56")
   contactEmail             String   @default("contact@maisonnerava.dz")
-  addressFr                String   @default("Alger - Chéraga • Livraison 58 Wilayas")
-  addressAr                String   @default("الجزائر العاصمة - الشراقة • توصيل 58 ولاية")
+  addressFr                String   @default("Alger - ChÃ©raga â€¢ Livraison 58 Wilayas")
+  addressAr                String   @default("Ø§Ù„Ø¬Ø²Ø§Ø¦Ø± Ø§Ù„Ø¹Ø§ØµÙ…Ø© - Ø§Ù„Ø´Ø±Ø§Ù‚Ø© â€¢ ØªÙˆØµÙŠÙ„ 58 ÙˆÙ„Ø§ÙŠØ©")
   instagramUrl             String   @default("")
   facebookUrl              String   @default("")
   tiktokUrl                String   @default("")
@@ -61,34 +61,34 @@ model SiteSettings {
   primaryColor             String   @default("#13382C")
 
   showAnnouncement         Boolean  @default(true)
-  announcementFr           String   @default("Livraison Express 58 Wilayas avec E-com Delivery • Paiement à la Livraison")
-  announcementAr           String   @default("توصيل سريع إلى 58 ولاية مع E-com Delivery • الدفع نقداً عند الاستلام")
-  announcementEn           String   @default("Express 58 Wilayas Delivery with E-com Delivery • Cash on Delivery")
+  announcementFr           String   @default("Livraison Express 58 Wilayas avec E-com Delivery â€¢ Paiement Ã  la Livraison")
+  announcementAr           String   @default("ØªÙˆØµÙŠÙ„ Ø³Ø±ÙŠØ¹ Ø¥Ù„Ù‰ 58 ÙˆÙ„Ø§ÙŠØ© Ù…Ø¹ E-com Delivery â€¢ Ø§Ù„Ø¯ÙØ¹ Ù†Ù‚Ø¯Ø§Ù‹ Ø¹Ù†Ø¯ Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…")
+  announcementEn           String   @default("Express 58 Wilayas Delivery with E-com Delivery â€¢ Cash on Delivery")
 
   showHero                 Boolean  @default(true)
   heroBadgeFr              String   @default("Collection Couture 2026")
-  heroBadgeAr              String   @default("تشكيلة كوتور 2026")
+  heroBadgeAr              String   @default("ØªØ´ÙƒÙŠÙ„Ø© ÙƒÙˆØªÙˆØ± 2026")
   heroBadgeEn              String   @default("2026 Couture Collection")
-  heroTitleFr              String   @default("L'Élégance Algérienne Réinventée")
-  heroTitleAr              String   @default("الأناقة الجزائرية بلمسة راقية")
+  heroTitleFr              String   @default("L'Ã‰lÃ©gance AlgÃ©rienne RÃ©inventÃ©e")
+  heroTitleAr              String   @default("Ø§Ù„Ø£Ù†Ø§Ù‚Ø© Ø§Ù„Ø¬Ø²Ø§Ø¦Ø±ÙŠØ© Ø¨Ù„Ù…Ø³Ø© Ø±Ø§Ù‚ÙŠØ©")
   heroTitleEn              String   @default("Algerian Elegance Reimagined")
-  heroSubtitleFr           String   @default("Karakou brodés au fil d’or, caftans fluides et créations modernes livrés avec soin chez vous.")
-  heroSubtitleAr           String   @default("كاراكو مطرز بالفتلة الذهبية، قفاطين فاخرة وتصاميم عصرية تصل إلى باب بيتك.")
+  heroSubtitleFr           String   @default("Karakou brodÃ©s au fil dâ€™or, caftans fluides et crÃ©ations modernes livrÃ©s avec soin chez vous.")
+  heroSubtitleAr           String   @default("ÙƒØ§Ø±Ø§ÙƒÙˆ Ù…Ø·Ø±Ø² Ø¨Ø§Ù„ÙØªÙ„Ø© Ø§Ù„Ø°Ù‡Ø¨ÙŠØ©ØŒ Ù‚ÙØ§Ø·ÙŠÙ† ÙØ§Ø®Ø±Ø© ÙˆØªØµØ§Ù…ÙŠÙ… Ø¹ØµØ±ÙŠØ© ØªØµÙ„ Ø¥Ù„Ù‰ Ø¨Ø§Ø¨ Ø¨ÙŠØªÙƒ.")
   heroSubtitleEn           String   @default("Hand-embroidered Karakou, luxury caftans, and modern modest wear delivered across Algeria.")
-  heroCtaFr                String   @default("Découvrir la Collection")
-  heroCtaAr                String   @default("اكتشفي المجموعة")
+  heroCtaFr                String   @default("DÃ©couvrir la Collection")
+  heroCtaAr                String   @default("Ø§ÙƒØªØ´ÙÙŠ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø©")
   heroCtaEn                String   @default("Explore Collection")
   heroImageUrl             String   @default("https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=900&q=85")
 
   showFeatures             Boolean  @default(true)
   feature1TitleFr          String   @default("Livraison 58 Wilayas")
-  feature1TitleAr          String   @default("توصيل 58 ولاية")
+  feature1TitleAr          String   @default("ØªÙˆØµÙŠÙ„ 58 ÙˆÙ„Ø§ÙŠØ©")
   feature1TitleEn          String   @default("58 Wilayas Delivery")
-  feature2TitleFr          String   @default("Paiement à la livraison")
-  feature2TitleAr          String   @default("الدفع عند الاستلام")
+  feature2TitleFr          String   @default("Paiement Ã  la livraison")
+  feature2TitleAr          String   @default("Ø§Ù„Ø¯ÙØ¹ Ø¹Ù†Ø¯ Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…")
   feature2TitleEn          String   @default("Cash on Delivery")
   feature3TitleFr          String   @default("Savoir-faire Artisanal")
-  feature3TitleAr          String   @default("تطريز يدوي أصيل")
+  feature3TitleAr          String   @default("ØªØ·Ø±ÙŠØ² ÙŠØ¯ÙˆÙŠ Ø£ØµÙŠÙ„")
   feature3TitleEn          String   @default("Artisanal Heritage")
 
   showSearch               Boolean  @default(true)
@@ -99,12 +99,12 @@ model SiteSettings {
   freeShippingThresholdDzd Int      @default(0)
   defaultDeliveryDelay     String   @default("24h - 72h")
 
-  footerDescFr             String   @default("Atelier de Couture & Prêt-à-Porter Féminin — Alger - Chéraga • 58 Wilayas")
-  footerDescAr             String   @default("دار الأزياء الراقية والخياطة التقليدية — الجزائر - الشراقة • 58 ولاية")
-  footerDescEn             String   @default("Haute Couture & Ready-to-Wear Atelier — Algiers - Cheraga • 58 Wilayas")
-  sizeGuideFr              String   @default("S (36-38) • M (38-40) • L (42-44) • XL (44-46) • XXL (48+). Abayas : 52 (1m55-1m60), 54 (1m61-1m66), 56 (1m67-1m72), 58 (1m73+).")
-  sizeGuideAr              String   @default("S (36-38) • M (38-40) • L (42-44) • XL (44-46). العبايات: 52، 54، 56، 58 حسب الطول.")
-  sizeGuideEn              String   @default("S (36-38) • M (38-40) • L (42-44) • XL (44-46) • XXL (48+). Abayas: 52, 54, 56, 58 by height.")
+  footerDescFr             String   @default("Atelier de Couture & PrÃªt-Ã -Porter FÃ©minin â€” Alger - ChÃ©raga â€¢ 58 Wilayas")
+  footerDescAr             String   @default("Ø¯Ø§Ø± Ø§Ù„Ø£Ø²ÙŠØ§Ø¡ Ø§Ù„Ø±Ø§Ù‚ÙŠØ© ÙˆØ§Ù„Ø®ÙŠØ§Ø·Ø© Ø§Ù„ØªÙ‚Ù„ÙŠØ¯ÙŠØ© â€” Ø§Ù„Ø¬Ø²Ø§Ø¦Ø± - Ø§Ù„Ø´Ø±Ø§Ù‚Ø© â€¢ 58 ÙˆÙ„Ø§ÙŠØ©")
+  footerDescEn             String   @default("Haute Couture & Ready-to-Wear Atelier â€” Algiers - Cheraga â€¢ 58 Wilayas")
+  sizeGuideFr              String   @default("S (36-38) â€¢ M (38-40) â€¢ L (42-44) â€¢ XL (44-46) â€¢ XXL (48+). Abayas : 52 (1m55-1m60), 54 (1m61-1m66), 56 (1m67-1m72), 58 (1m73+).")
+  sizeGuideAr              String   @default("S (36-38) â€¢ M (38-40) â€¢ L (42-44) â€¢ XL (44-46). Ø§Ù„Ø¹Ø¨Ø§ÙŠØ§Øª: 52ØŒ 54ØŒ 56ØŒ 58 Ø­Ø³Ø¨ Ø§Ù„Ø·ÙˆÙ„.")
+  sizeGuideEn              String   @default("S (36-38) â€¢ M (38-40) â€¢ L (42-44) â€¢ XL (44-46) â€¢ XXL (48+). Abayas: 52, 54, 56, 58 by height.")
 
   updatedAt                DateTime @updatedAt
 }
@@ -170,6 +170,7 @@ model WilayaShipping {
   stopDeskDzd     Int
   delay           String  @default("24h - 72h")
   isActive        Boolean @default(true)
+  customOverride  Boolean @default(false)
 }
 
 model PromoCode {

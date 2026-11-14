@@ -4,7 +4,7 @@ import { createOrderSchema } from '@/lib/validators';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { ALGERIA_WILAYAS } from '@/lib/wilayas';
 import { getSiteSettings } from '@/lib/settings';
-import { ecomFetch, getEcomCredentials } from '@/lib/ecom';
+import { ecomFetch, getEcomCredentials, getCachedEcomTarifs } from '@/lib/ecom';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const phone = searchParams.get('phone')?.trim();
 
   if (!orderNumber || !phone) {
-    return NextResponse.json({ error: 'Numéro de commande et téléphone requis' }, { status: 400 });
+    return NextResponse.json({ error: 'NumÃ©ro de commande et tÃ©lÃ©phone requis' }, { status: 400 });
   }
 
   const order = await prisma.order.findUnique({
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   });
 
   if (!order || order.customerPhone.slice(-4) !== phone.slice(-4)) {
-    return NextResponse.json({ error: 'Aucune commande trouvée avec ces informations' }, { status: 404 });
+    return NextResponse.json({ error: 'Aucune commande trouvÃ©e avec ces informations' }, { status: 404 });
   }
 
   let ecomHistory: Array<{ date: string; ville: number; situation: string; commentaire: string | null }> = [];
@@ -85,13 +85,13 @@ export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
     const rate = checkRateLimit(ip, 10, 15 * 60 * 1000);
     if (!rate.allowed) {
-      return NextResponse.json({ error: 'Trop de requêtes. Veuillez patienter.' }, { status: 429 });
+      return NextResponse.json({ error: 'Trop de requÃªtes. Veuillez patienter.' }, { status: 429 });
     }
 
     const parsed = createOrderSchema.safeParse(await req.json().catch(() => null));
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.issues[0]?.message || 'Données invalides' },
+        { error: parsed.error.issues[0]?.message || 'DonnÃ©es invalides' },
         { status: 400 }
       );
     }
@@ -109,9 +109,10 @@ export async function POST(req: NextRequest) {
       items,
     } = parsed.data;
 
-    const [dbWilaya, settings] = await Promise.all([
+    const [dbWilaya, settings, liveTarifs] = await Promise.all([
       prisma.wilayaShipping.findUnique({ where: { code: wilayaCode } }).catch(() => null),
       getSiteSettings(),
+      getCachedEcomTarifs(),
     ]);
 
     const fallbackWilaya = ALGERIA_WILAYAS.find((w) => w.code === wilayaCode);
@@ -192,7 +193,11 @@ export async function POST(req: NextRequest) {
     }
 
     const netSubtotal = Math.max(0, subtotalDzd - discountDzd);
-    const baseShipping = deliveryType === 'HOME' ? wilaya.homeDeliveryDzd : wilaya.stopDeskDzd;
+    const liveRate = liveTarifs?.byWilaya[wilayaCode];
+    const useCustom = Boolean(dbWilaya?.customOverride);
+    const effectiveHome = useCustom ? dbWilaya!.homeDeliveryDzd : (liveRate && liveRate.domicile > 0 ? liveRate.domicile : wilaya.homeDeliveryDzd);
+    const effectiveDesk = useCustom ? dbWilaya!.stopDeskDzd : (liveRate && liveRate.stopdesk > 0 ? liveRate.stopdesk : wilaya.stopDeskDzd);
+    const baseShipping = deliveryType === 'HOME' ? effectiveHome : effectiveDesk;
     const freeShipping =
       settings.freeShippingThresholdDzd > 0 && netSubtotal >= settings.freeShippingThresholdDzd;
     const shippingDzd = freeShipping ? 0 : baseShipping;
@@ -259,6 +264,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error('Order creation error:', err);
-    return NextResponse.json({ error: 'Erreur lors de la création de la commande' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur lors de la crÃ©ation de la commande' }, { status: 500 });
   }
 }

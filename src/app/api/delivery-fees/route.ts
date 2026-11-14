@@ -25,22 +25,23 @@ export async function GET(req: NextRequest) {
     const db = dbMap.get(def.code);
     const liveRate = liveTarifs?.byWilaya[def.code];
     const liveInfo = liveWilayaMap.get(def.code);
+    const useCustom = Boolean(db?.customOverride);
 
-    const homeDeliveryDzd = db
-      ? db.homeDeliveryDzd
+    const homeDeliveryDzd = useCustom
+      ? db!.homeDeliveryDzd
       : liveRate && liveRate.domicile > 0
       ? liveRate.domicile
-      : def.homeDeliveryDzd;
+      : db?.homeDeliveryDzd ?? def.homeDeliveryDzd;
 
-    const stopDeskDzd = db
-      ? db.stopDeskDzd
+    const stopDeskDzd = useCustom
+      ? db!.stopDeskDzd
       : liveRate && liveRate.stopdesk > 0
       ? liveRate.stopdesk
-      : def.stopDeskDzd;
+      : db?.stopDeskDzd ?? def.stopDeskDzd;
 
     return {
       code: def.code,
-      nameFr: db?.nameFr || liveInfo?.libelle || def.nameFr,
+      nameFr: liveInfo?.libelle || db?.nameFr || def.nameFr,
       nameAr: db?.nameAr || def.nameAr,
       homeDeliveryDzd,
       stopDeskDzd,
@@ -59,6 +60,8 @@ export async function GET(req: NextRequest) {
       wilayas: merged,
       freeShippingThresholdDzd: settings.freeShippingThresholdDzd,
       ecomConfigured: getEcomCredentials().configured,
+      serviceFee: liveTarifs?.service ?? 0,
+      packagingFee: liveTarifs?.emballage ?? 0,
     });
   }
 
