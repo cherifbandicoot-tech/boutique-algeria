@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Minus, Trash2, CheckCircle2, Truck, Building2, Loader2 } from 'lucide-react';
+import { X, Plus, Minus, Trash2, CheckCircle2, Truck, Building2, Loader2, Clock, ShieldCheck } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { useCart } from './CartContext';
@@ -57,13 +57,13 @@ export function CartDrawer() {
 
       const data = await res.json();
       if (!res.ok) {
-        setErrorMsg(data.error || 'Une erreur est survenue.');
+        setErrorMsg(data.error || 'Une erreur est survenue lors de la commande.');
       } else {
         setConfirmedOrder(data.orderNumber);
         clearCart();
       }
     } catch {
-      setErrorMsg('Erreur réseau. Veuillez réessayer.');
+      setErrorMsg('Erreur de connexion. Veuillez réessayer.');
     } finally {
       setSubmitting(false);
     }
@@ -73,7 +73,6 @@ export function CartDrawer() {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -85,7 +84,6 @@ export function CartDrawer() {
             className="fixed inset-0 bg-black/45 backdrop-blur-xs z-50"
           />
 
-          {/* Slide-over Drawer */}
           <motion.aside
             initial={{ x: isRtl ? '-100%' : '100%' }}
             animate={{ x: 0 }}
@@ -97,104 +95,67 @@ export function CartDrawer() {
           >
             {/* Header */}
             <div className="p-5 border-b border-[#141414]/10 flex items-center justify-between">
-              <h2 className="font-serif text-2xl">{t('nav.cart')}</h2>
+              <div>
+                <h2 className="font-serif text-2xl text-[#141414]">{t('nav.cart')}</h2>
+                <p className="text-[11px] text-[#141414]/60">MAISON NERAVA • E-com Delivery</p>
+              </div>
               <button
                 onClick={() => {
                   setConfirmedOrder(null);
                   closeCart();
                 }}
-                className="p-2 rounded-full hover:bg-black/5"
+                className="p-2 rounded-full hover:bg-black/5 transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
 
-            {/* Body */}
+            {/* Content */}
             <div className="flex-1 overflow-y-auto p-5 space-y-6">
               {confirmedOrder ? (
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="text-center py-12 space-y-4"
-                >
+                <div className="text-center py-12 space-y-4">
                   <CheckCircle2 size={54} className="mx-auto text-[#13382C]" />
-                  <h3 className="font-serif text-2xl">
-                    {locale === 'ar'
-                      ? 'تم تسجيل طلبك بنجاح!'
-                      : locale === 'en'
-                      ? 'Order Confirmed!'
-                      : 'Commande Confirmée !'}
+                  <h3 className="font-serif text-2xl text-[#141414]">
+                    {locale === 'ar' ? 'تم تسجيل طلبك بنجاح!' : 'Commande Confirmée !'}
                   </h3>
-                  <p className="text-sm text-[#141414]/70">
+                  <p className="text-xs text-[#141414]/70 leading-relaxed max-w-xs mx-auto">
                     {locale === 'ar'
-                      ? `رقم الطلب: ${confirmedOrder} — سنتصل بك قريباً للتأكيد.`
-                      : locale === 'en'
-                      ? `Order #${confirmedOrder} — We will call you shortly to confirm.`
-                      : `Commande N° ${confirmedOrder} — Notre équipe vous appellera pour confirmer.`}
+                      ? `رقم الطلب الخاص بك: ${confirmedOrder}. سيتصل بك فريقنا للتأكيد قبل إرساله مع E-com Delivery.`
+                      : `Votre commande N° ${confirmedOrder} est enregistrée. Notre équipe vous contactera par téléphone pour confirmer la livraison avec E-com Delivery.`}
                   </p>
-                </motion.div>
+                </div>
               ) : items.length === 0 ? (
-                <p className="text-center text-sm text-[#141414]/60 py-16">
-                  {locale === 'ar'
-                    ? 'سلتك فارغة حالياً.'
-                    : locale === 'en'
-                    ? 'Your shopping bag is empty.'
-                    : 'Votre panier est actuellement vide.'}
+                <p className="text-center text-sm text-[#141414]/60 py-20">
+                  {locale === 'ar' ? 'سلتك فارغة حالياً.' : 'Votre panier est actuellement vide.'}
                 </p>
               ) : (
                 <>
-                  {/* Items List */}
-                  <div className="space-y-4">
+                  {/* Selected Clothing Items */}
+                  <div className="space-y-3">
                     {items.map((item) => {
-                      const title =
-                        locale === 'ar'
-                          ? item.titleAr
-                          : locale === 'en'
-                          ? item.titleEn
-                          : item.titleFr;
-
+                      const title = locale === 'ar' ? item.titleAr : locale === 'en' ? item.titleEn : item.titleFr;
                       return (
-                        <div
-                          key={`${item.productId}-${item.size}`}
-                          className="flex gap-4 bg-white p-3 rounded-2xl border border-[#141414]/8"
-                        >
-                          <div className="relative w-20 h-24 rounded-xl overflow-hidden shrink-0">
+                        <div key={`${item.productId}-${item.size}`} className="flex gap-3 bg-white p-3 rounded-2xl border border-[#141414]/8">
+                          <div className="relative w-16 h-20 rounded-xl overflow-hidden shrink-0">
                             <Image src={item.image} alt={title} fill className="object-cover" />
                           </div>
                           <div className="flex-1 flex flex-col justify-between">
-                            <div>
-                              <div className="flex justify-between items-start gap-2">
-                                <h4 className="font-medium text-sm">{title}</h4>
-                                <button
-                                  onClick={() => removeItem(item.productId, item.size)}
-                                  className="text-[#141414]/40 hover:text-red-600"
-                                >
-                                  <Trash2 size={15} />
-                                </button>
+                            <div className="flex justify-between items-start gap-1">
+                              <div>
+                                <h4 className="font-medium text-xs text-[#141414] line-clamp-1">{title}</h4>
+                                <span className="text-[10px] uppercase tracking-wider text-[#9A7835] font-semibold">Taille: {item.size}</span>
                               </div>
-                              <p className="text-xs text-[#141414]/60 mt-0.5">
-                                {locale === 'ar' ? 'المقاس' : 'Taille'}: {item.size}
-                              </p>
+                              <button onClick={() => removeItem(item.productId, item.size)} className="text-[#141414]/30 hover:text-red-600">
+                                <Trash2 size={14} />
+                              </button>
                             </div>
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between mt-2">
                               <div className="flex items-center gap-2 border border-[#141414]/15 rounded-full px-2 py-0.5">
-                                <button
-                                  onClick={() => updateQty(item.productId, item.size, -1)}
-                                  className="p-1"
-                                >
-                                  <Minus size={12} />
-                                </button>
+                                <button onClick={() => updateQty(item.productId, item.size, -1)} className="p-0.5"><Minus size={10} /></button>
                                 <span className="text-xs font-semibold">{item.quantity}</span>
-                                <button
-                                  onClick={() => updateQty(item.productId, item.size, 1)}
-                                  className="p-1"
-                                >
-                                  <Plus size={12} />
-                                </button>
+                                <button onClick={() => updateQty(item.productId, item.size, 1)} className="p-0.5"><Plus size={10} /></button>
                               </div>
-                              <span className="text-sm font-semibold text-[#9A7835]">
-                                {(item.priceDzd * item.quantity).toLocaleString()} {t('product.currency')}
-                              </span>
+                              <span className="text-xs font-bold text-[#141414]">{(item.priceDzd * item.quantity).toLocaleString()} DZD</span>
                             </div>
                           </div>
                         </div>
@@ -202,17 +163,17 @@ export function CartDrawer() {
                     })}
                   </div>
 
-                  {/* 58-Wilaya COD Checkout Form */}
-                  <form id="cod-checkout-form" onSubmit={handleOrder} className="space-y-3 pt-4 border-t border-[#141414]/10">
-                    <h3 className="font-serif text-xl">{t('checkout.title')}</h3>
+                  {/* 58-Wilayas Checkout with Live E-com Delivery Price */}
+                  <form id="cod-checkout-form" onSubmit={handleOrder} className="space-y-3 pt-3 border-t border-[#141414]/10">
+                    <h3 className="font-serif text-lg">{t('checkout.title')}</h3>
 
                     <input
                       required
                       type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder={locale === 'ar' ? 'الاسم الكامل' : locale === 'en' ? 'Full Name' : 'Nom complet'}
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-[#141414]/15 text-sm focus:outline-none focus:border-[#C5A059]"
+                      placeholder={locale === 'ar' ? 'الاسم الكامل' : 'Nom et Prénom'}
+                      className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#141414]/15 text-xs focus:outline-none focus:border-[#C5A059]"
                     />
 
                     <input
@@ -221,58 +182,66 @@ export function CartDrawer() {
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
                       placeholder={t('checkout.phone')}
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-[#141414]/15 text-sm focus:outline-none focus:border-[#C5A059]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#141414]/15 text-xs focus:outline-none focus:border-[#C5A059]"
                     />
 
-                    <div className="grid grid-cols-2 gap-3">
+                    {/* Wilaya Selector with Live Delivery Fee Tag */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-wider text-[#141414]/60 font-semibold">{t('checkout.wilaya')}</label>
                       <select
                         value={wilayaCode}
                         onChange={(e) => setWilayaCode(Number(e.target.value))}
-                        className="w-full px-3 py-3 rounded-xl bg-white border border-[#141414]/15 text-sm focus:outline-none focus:border-[#C5A059]"
+                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#141414]/15 text-xs font-medium focus:outline-none focus:border-[#C5A059]"
                       >
                         {ALGERIA_WILAYAS.map((w) => (
                           <option key={w.code} value={w.code}>
-                            {String(w.code).padStart(2, '0')} - {locale === 'ar' ? w.nameAr : w.nameFr}
+                            {String(w.code).padStart(2, '0')} - {locale === 'ar' ? w.nameAr : w.nameFr} ({w.homeDeliveryDzd} DZD)
                           </option>
                         ))}
                       </select>
-
-                      <input
-                        required
-                        type="text"
-                        value={commune}
-                        onChange={(e) => setCommune(e.target.value)}
-                        placeholder={t('checkout.commune')}
-                        className="w-full px-3 py-3 rounded-xl bg-white border border-[#141414]/15 text-sm focus:outline-none focus:border-[#C5A059]"
-                      />
                     </div>
 
-                    {/* Home Delivery vs Stop Desk Toggle */}
-                    <div className="grid grid-cols-2 gap-2">
+                    <input
+                      required
+                      type="text"
+                      value={commune}
+                      onChange={(e) => setCommune(e.target.value)}
+                      placeholder={t('checkout.commune')}
+                      className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#141414]/15 text-xs focus:outline-none focus:border-[#C5A059]"
+                    />
+
+                    {/* Home vs Stop Desk Switch */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
                       <button
                         type="button"
                         onClick={() => setDeliveryType('HOME')}
-                        className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-medium transition-all ${
+                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl border text-xs font-medium transition-all ${
                           deliveryType === 'HOME'
                             ? 'bg-[#141414] text-white border-[#141414]'
-                            : 'bg-white border-[#141414]/15'
+                            : 'bg-white border-[#141414]/15 text-[#141414]'
                         }`}
                       >
-                        <Truck size={14} />
-                        <span>{t('checkout.homeDelivery')}</span>
+                        <Truck size={13} />
+                        <span>{t('checkout.homeDelivery')} ({selectedWilaya.homeDeliveryDzd} DZD)</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setDeliveryType('DESK')}
-                        className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-medium transition-all ${
+                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl border text-xs font-medium transition-all ${
                           deliveryType === 'DESK'
                             ? 'bg-[#141414] text-white border-[#141414]'
-                            : 'bg-white border-[#141414]/15'
+                            : 'bg-white border-[#141414]/15 text-[#141414]'
                         }`}
                       >
-                        <Building2 size={14} />
-                        <span>{t('checkout.stopDesk')}</span>
+                        <Building2 size={13} />
+                        <span>{t('checkout.stopDesk')} ({selectedWilaya.stopDeskDzd} DZD)</span>
                       </button>
+                    </div>
+
+                    {/* Estimated Delivery Time Badge */}
+                    <div className="flex items-center gap-1.5 text-[11px] text-[#13382C] bg-emerald-50 px-3 py-1.5 rounded-xl font-medium">
+                      <Clock size={12} />
+                      <span>Délai E-com Delivery estimé : <strong>{selectedWilaya.delay}</strong></span>
                     </div>
 
                     {deliveryType === 'HOME' && (
@@ -280,40 +249,41 @@ export function CartDrawer() {
                         type="text"
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
-                        placeholder={locale === 'ar' ? 'العنوان (اختياري)' : 'Adresse (optionnel)'}
-                        className="w-full px-4 py-3 rounded-xl bg-white border border-[#141414]/15 text-sm focus:outline-none focus:border-[#C5A059]"
+                        placeholder="Adresse exacte ou point de repère (Optionnel)"
+                        className="w-full px-4 py-2 rounded-xl bg-white border border-[#141414]/15 text-xs focus:outline-none"
                       />
                     )}
 
-                    {errorMsg && (
-                      <p className="text-xs text-red-600 bg-red-50 p-2.5 rounded-lg">{errorMsg}</p>
-                    )}
+                    {errorMsg && <p className="text-xs text-red-600 bg-red-50 p-2.5 rounded-lg">{errorMsg}</p>}
                   </form>
                 </>
               )}
             </div>
 
-            {/* Footer Totals & Submit */}
+            {/* Price + Delivery Breakdown Footer */}
             {items.length > 0 && !confirmedOrder && (
-              <div className="p-5 bg-white border-t border-[#141414]/10 space-y-3">
+              <div className="p-5 bg-white border-t border-[#141414]/10 space-y-2">
                 <div className="flex justify-between text-xs text-[#141414]/70">
-                  <span>{locale === 'ar' ? 'التوصيل' : 'Livraison'}</span>
-                  <span>{shippingDzd.toLocaleString()} {t('product.currency')}</span>
+                  <span>{t('checkout.subtotal')}</span>
+                  <span>{subtotalDzd.toLocaleString()} DZD</span>
                 </div>
-                <div className="flex justify-between text-base font-semibold">
-                  <span>Total ({t('checkout.cod')})</span>
-                  <span className="text-[#9A7835]">{totalDzd.toLocaleString()} {t('product.currency')}</span>
+                <div className="flex justify-between text-xs font-semibold text-[#9A7835]">
+                  <span>+ {t('checkout.shipping')} ({selectedWilaya.nameFr})</span>
+                  <span>{shippingDzd.toLocaleString()} DZD</span>
                 </div>
+                <div className="flex justify-between text-base font-bold text-[#141414] pt-2 border-t border-[#141414]/10">
+                  <span>{t('checkout.total')}</span>
+                  <span>{totalDzd.toLocaleString()} DZD</span>
+                </div>
+
                 <button
                   type="submit"
                   form="cod-checkout-form"
                   disabled={submitting}
-                  className="w-full py-4 rounded-full bg-[#13382C] text-white text-xs uppercase tracking-[0.18em] font-semibold hover:bg-[#141414] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="w-full mt-2 py-4 rounded-full bg-[#13382C] text-white text-xs uppercase tracking-[0.18em] font-bold hover:bg-[#141414] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-lg shadow-[#13382C]/15"
                 >
                   {submitting && <Loader2 size={16} className="animate-spin" />}
-                  <span>
-                    {locale === 'ar' ? 'تأكيد الطلب' : locale === 'en' ? 'Confirm Order' : 'Confirmer la commande'}
-                  </span>
+                  <span>{locale === 'ar' ? 'تأكيد الطلب الآن' : 'Confirmer la Commande (Paiement à la Livraison)'}</span>
                 </button>
               </div>
             )}

@@ -1,18 +1,17 @@
 {
-  "brand": "MAISON YASMINE",
+  "brand": "MAISON NERAVA",
+  "topBanner": "Livraison Express dans les 58 Wilayas avec E-com Delivery • Paiement à la Livraison",
   "nav": {
     "home": "Accueil",
     "collections": "Collections",
     "newArrivals": "Nouveautés",
-    "about": "Notre Histoire",
     "cart": "Panier"
   },
   "hero": {
-    "badge": "Nouvelle Collection 2026",
+    "badge": "Collection Couture 2026",
     "title": "L'Élégance Algérienne Réinventée",
-    "subtitle": "Karakou brodés main, caftans fluides et prêt-à-porter féminin livrés avec soin dans les 58 wilayas.",
-    "cta": "Découvrir la Collection",
-    "secondaryCta": "Sur Mesure"
+    "subtitle": "Karakou brodés au fil d’or, caftans fluides et créations modernes livrés avec soin chez vous.",
+    "cta": "Découvrir la Collection"
   },
   "features": {
     "delivery": "Livraison 58 Wilayas",
@@ -23,17 +22,20 @@
     "currency": "DZD",
     "addToCart": "Ajouter au panier",
     "quickOrder": "Commander maintenant",
-    "outOfStock": "Rupture de stock",
-    "selectSize": "Choisir la taille"
+    "selectSize": "Choisir la taille",
+    "deliveryEstimate": "Livraison estimée :",
+    "pricePlusDelivery": "+ Livraison selon Wilaya"
   },
   "checkout": {
     "title": "Finaliser la commande",
-    "cod": "Paiement à la livraison (COD)",
-    "cib": "Carte CIB / Edahabia",
-    "wilaya": "Wilaya",
+    "cod": "Paiement à la livraison (Cash)",
+    "wilaya": "Wilaya de livraison",
     "commune": "Commune",
     "phone": "Téléphone (05 / 06 / 07)",
-    "homeDelivery": "Livraison à domicile",
-    "stopDesk": "Stop Desk (Bureau)"
+    "homeDelivery": "À Domicile",
+    "stopDesk": "Stop Desk (Bureau)",
+    "subtotal": "Sous-total articles",
+    "shipping": "Frais de livraison",
+    "total": "Total Net à Payer"
   }
 }
