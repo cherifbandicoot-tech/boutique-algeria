@@ -3,6 +3,8 @@
 :root {
   --bg-ivory: #FAF8F5;
   --text-obsidian: #141414;
+  --accent-gold: #C5A059;
+  --primary-emerald: #13382C;
 }
 
 body {
@@ -13,6 +15,6 @@ body {
 }
 
 ::selection {
-  background-color: #C5A059;
+  background-color: var(--accent-gold);
   color: #FFFFFF;
 }

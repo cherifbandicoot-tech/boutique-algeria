@@ -41,6 +41,74 @@ model User {
   updatedAt    DateTime @updatedAt
 }
 
+model SiteSettings {
+  id                       String   @id @default("default")
+  brandName                String   @default("MAISON NERAVA")
+  brandNameAr              String   @default("دار نيرافا")
+  logoUrl                  String?
+  whatsappNumber           String   @default("213770312656")
+  contactPhone             String   @default("+213 770 31 26 56")
+  contactEmail             String   @default("contact@maisonnerava.dz")
+  addressFr                String   @default("Alger - Chéraga • Livraison 58 Wilayas")
+  addressAr                String   @default("الجزائر العاصمة - الشراقة • توصيل 58 ولاية")
+  instagramUrl             String   @default("")
+  facebookUrl              String   @default("")
+  tiktokUrl                String   @default("")
+
+  bgColor                  String   @default("#FAF8F5")
+  textColor                String   @default("#141414")
+  accentColor              String   @default("#C5A059")
+  primaryColor             String   @default("#13382C")
+
+  showAnnouncement         Boolean  @default(true)
+  announcementFr           String   @default("Livraison Express 58 Wilayas avec E-com Delivery • Paiement à la Livraison")
+  announcementAr           String   @default("توصيل سريع إلى 58 ولاية مع E-com Delivery • الدفع نقداً عند الاستلام")
+  announcementEn           String   @default("Express 58 Wilayas Delivery with E-com Delivery • Cash on Delivery")
+
+  showHero                 Boolean  @default(true)
+  heroBadgeFr              String   @default("Collection Couture 2026")
+  heroBadgeAr              String   @default("تشكيلة كوتور 2026")
+  heroBadgeEn              String   @default("2026 Couture Collection")
+  heroTitleFr              String   @default("L'Élégance Algérienne Réinventée")
+  heroTitleAr              String   @default("الأناقة الجزائرية بلمسة راقية")
+  heroTitleEn              String   @default("Algerian Elegance Reimagined")
+  heroSubtitleFr           String   @default("Karakou brodés au fil d’or, caftans fluides et créations modernes livrés avec soin chez vous.")
+  heroSubtitleAr           String   @default("كاراكو مطرز بالفتلة الذهبية، قفاطين فاخرة وتصاميم عصرية تصل إلى باب بيتك.")
+  heroSubtitleEn           String   @default("Hand-embroidered Karakou, luxury caftans, and modern modest wear delivered across Algeria.")
+  heroCtaFr                String   @default("Découvrir la Collection")
+  heroCtaAr                String   @default("اكتشفي المجموعة")
+  heroCtaEn                String   @default("Explore Collection")
+  heroImageUrl             String   @default("https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=900&q=85")
+
+  showFeatures             Boolean  @default(true)
+  feature1TitleFr          String   @default("Livraison 58 Wilayas")
+  feature1TitleAr          String   @default("توصيل 58 ولاية")
+  feature1TitleEn          String   @default("58 Wilayas Delivery")
+  feature2TitleFr          String   @default("Paiement à la livraison")
+  feature2TitleAr          String   @default("الدفع عند الاستلام")
+  feature2TitleEn          String   @default("Cash on Delivery")
+  feature3TitleFr          String   @default("Savoir-faire Artisanal")
+  feature3TitleAr          String   @default("تطريز يدوي أصيل")
+  feature3TitleEn          String   @default("Artisanal Heritage")
+
+  showSearch               Boolean  @default(true)
+  showCategoryFilter       Boolean  @default(true)
+  showDeliverySection      Boolean  @default(true)
+  showWhatsAppButton       Boolean  @default(true)
+  showOrderTracking        Boolean  @default(true)
+  freeShippingThresholdDzd Int      @default(0)
+  defaultDeliveryDelay     String   @default("24h - 72h")
+
+  footerDescFr             String   @default("Atelier de Couture & Prêt-à-Porter Féminin — Alger - Chéraga • 58 Wilayas")
+  footerDescAr             String   @default("دار الأزياء الراقية والخياطة التقليدية — الجزائر - الشراقة • 58 ولاية")
+  footerDescEn             String   @default("Haute Couture & Ready-to-Wear Atelier — Algiers - Cheraga • 58 Wilayas")
+  sizeGuideFr              String   @default("S (36-38) • M (38-40) • L (42-44) • XL (44-46) • XXL (48+). Abayas : 52 (1m55-1m60), 54 (1m61-1m66), 56 (1m67-1m72), 58 (1m73+).")
+  sizeGuideAr              String   @default("S (36-38) • M (38-40) • L (42-44) • XL (44-46). العبايات: 52، 54، 56، 58 حسب الطول.")
+  sizeGuideEn              String   @default("S (36-38) • M (38-40) • L (42-44) • XL (44-46) • XXL (48+). Abayas: 52, 54, 56, 58 by height.")
+
+  updatedAt                DateTime @updatedAt
+}
+
 model Category {
   id        String    @id @default(cuid())
   slug      String    @unique
@@ -95,12 +163,26 @@ model ProductImage {
 }
 
 model WilayaShipping {
-  code              Int     @id
-  nameFr            String
-  nameAr            String
-  homeDeliveryDzd   Int
-  stopDeskDzd       Int
-  isActive          Boolean @default(true)
+  code            Int     @id
+  nameFr          String
+  nameAr          String
+  homeDeliveryDzd Int
+  stopDeskDzd     Int
+  delay           String  @default("24h - 72h")
+  isActive        Boolean @default(true)
+}
+
+model PromoCode {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  discountType  String    @default("PERCENT")
+  discountValue Int
+  minOrderDzd   Int       @default(0)
+  maxUses       Int?
+  usedCount     Int       @default(0)
+  isActive      Boolean   @default(true)
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
 }
 
 model Order {
@@ -111,14 +193,26 @@ model Order {
   wilayaCode    Int
   wilayaName    String
   commune       String
+  stopdeskCode  String?
+  stopdeskName  String?
   address       String?
   deliveryType  DeliveryType  @default(HOME)
   paymentMethod PaymentMethod @default(COD)
   shippingDzd   Int
+  discountDzd   Int           @default(0)
+  promoCode     String?
   subtotalDzd   Int
   totalDzd      Int
   status        OrderStatus   @default(PENDING)
   trackingCode  String?
+  adminNotes    String?
+  ecomParcelId  String?
+  ecomStatus    String?
+  ecomLogistic  String?
+  ecomPaid      Boolean       @default(false)
+  ecomRecovered Boolean       @default(false)
+  ecomResponse  String?
+  ecomSyncedAt  DateTime?
   items         OrderItem[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt

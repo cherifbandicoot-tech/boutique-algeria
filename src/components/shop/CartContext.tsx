@@ -4,11 +4,13 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 export interface CartItem {
   productId: string;
+  slug?: string;
   titleFr: string;
   titleAr: string;
   titleEn: string;
   priceDzd: number;
   size: string;
+  colorName?: string;
   image: string;
   quantity: number;
 }
@@ -19,8 +21,8 @@ interface CartContextType {
   openCart: () => void;
   closeCart: () => void;
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
-  updateQty: (productId: string, size: string, delta: number) => void;
-  removeItem: (productId: string, size: string) => void;
+  updateQty: (productId: string, size: string, delta: number, colorName?: string) => void;
+  removeItem: (productId: string, size: string, colorName?: string) => void;
   clearCart: () => void;
   totalItems: number;
   subtotalDzd: number;
@@ -45,14 +47,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [items]);
 
+  const matchItem = (i: CartItem, productId: string, size: string, colorName?: string) =>
+    i.productId === productId && i.size === size && (i.colorName || 'Standard') === (colorName || 'Standard');
+
   const addItem = (newItem: Omit<CartItem, 'quantity'>) => {
     setItems((prev) => {
-      const existing = prev.find(
-        (i) => i.productId === newItem.productId && i.size === newItem.size
-      );
+      const existing = prev.find((i) => matchItem(i, newItem.productId, newItem.size, newItem.colorName));
       if (existing) {
         return prev.map((i) =>
-          i.productId === newItem.productId && i.size === newItem.size
+          matchItem(i, newItem.productId, newItem.size, newItem.colorName)
             ? { ...i, quantity: Math.min(10, i.quantity + 1) }
             : i
         );
@@ -62,20 +65,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsOpen(true);
   };
 
-  const updateQty = (productId: string, size: string, delta: number) => {
+  const updateQty = (productId: string, size: string, delta: number, colorName?: string) => {
     setItems((prev) =>
       prev
-        .map((i) =>
-          i.productId === productId && i.size === size
-            ? { ...i, quantity: i.quantity + delta }
-            : i
-        )
+        .map((i) => (matchItem(i, productId, size, colorName) ? { ...i, quantity: i.quantity + delta } : i))
         .filter((i) => i.quantity > 0)
     );
   };
 
-  const removeItem = (productId: string, size: string) => {
-    setItems((prev) => prev.filter((i) => !(i.productId === productId && i.size === size)));
+  const removeItem = (productId: string, size: string, colorName?: string) => {
+    setItems((prev) => prev.filter((i) => !matchItem(i, productId, size, colorName)));
   };
 
   const clearCart = () => setItems([]);

@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Globe, Menu, X, Sparkles } from 'lucide-react';
+import { ShoppingBag, Globe, Menu, X, Sparkles, PackageSearch } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/components/shop/CartContext';
+import { useSiteSettings } from '@/components/shop/SiteSettingsContext';
 
 export function Navbar() {
   const t = useTranslations();
@@ -14,6 +15,7 @@ export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { totalItems, openCart } = useCart();
+  const settings = useSiteSettings();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -29,57 +31,84 @@ export function Navbar() {
     router.push(segments.join('/') || `/${newLocale}`);
   };
 
+  const brand = locale === 'ar' ? settings.brandNameAr : settings.brandName;
+  const announcement =
+    locale === 'ar'
+      ? settings.announcementAr
+      : locale === 'en'
+      ? settings.announcementEn
+      : settings.announcementFr;
+
   return (
     <header className="fixed top-0 inset-x-0 z-40 transition-all duration-300">
-      {/* Top Delivery Announcement Ribbon */}
-      <div className="bg-[#13382C] text-[#FAF8F5] py-2 px-4 text-[11px] uppercase tracking-[0.2em] font-medium text-center flex items-center justify-center gap-2">
-        <Sparkles size={12} className="text-[#C5A059]" />
-        <span>{t('topBanner')}</span>
-      </div>
+      {settings.showAnnouncement && (
+        <div
+          style={{ backgroundColor: settings.primaryColor }}
+          className="text-[#FAF8F5] py-2 px-4 text-[11px] uppercase tracking-[0.16em] font-medium text-center flex items-center justify-center gap-2"
+        >
+          <Sparkles size={12} style={{ color: settings.accentColor }} className="shrink-0" />
+          <span className="truncate">{announcement}</span>
+        </div>
+      )}
 
       <nav
+        style={scrolled ? { backgroundColor: `${settings.bgColor}E8` } : undefined}
         className={`transition-all duration-500 ${
           scrolled
-            ? 'bg-[#FAF8F5]/90 backdrop-blur-md border-b border-[#141414]/10 py-3 shadow-xs'
+            ? 'backdrop-blur-md border-b border-black/10 py-3 shadow-xs'
             : 'bg-transparent py-4'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-5 md:px-12 flex items-center justify-between gap-4">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 text-[#141414]"
+            className="md:hidden p-2"
             aria-label="Menu"
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
 
-          <div className="hidden md:flex items-center gap-8 text-xs uppercase tracking-[0.2em] font-medium">
-            <Link href={`/${locale}`} className="hover:text-[#C5A059] transition-colors">
+          <div className="hidden md:flex items-center gap-7 text-xs uppercase tracking-[0.18em] font-medium">
+            <Link href={`/${locale}`} className="hover:opacity-70 transition-opacity">
               {t('nav.home')}
             </Link>
-            <Link href={`/${locale}#collections`} className="hover:text-[#C5A059] transition-colors">
+            <Link href={`/${locale}#collections`} className="hover:opacity-70 transition-opacity">
               {t('nav.collections')}
             </Link>
+            {settings.showDeliverySection && (
+              <Link href={`/${locale}#delivery`} className="hover:opacity-70 transition-opacity">
+                {locale === 'ar' ? 'التوصيل' : locale === 'en' ? 'Delivery' : 'Livraison'}
+              </Link>
+            )}
+            {settings.showOrderTracking && (
+              <Link href={`/${locale}/track`} className="inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity">
+                <PackageSearch size={14} style={{ color: settings.accentColor }} />
+                <span>{locale === 'ar' ? 'تتبع طلبي' : locale === 'en' ? 'Track' : 'Suivi'}</span>
+              </Link>
+            )}
           </div>
 
-          {/* Maison Nerava Brand Logo */}
           <Link
             href={`/${locale}`}
-            className="text-xl md:text-2xl font-serif tracking-[0.22em] font-semibold text-[#141414] hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2.5 text-lg md:text-2xl font-serif tracking-[0.2em] font-semibold hover:opacity-90 transition-opacity truncate"
           >
-            {t('brand')}
+            {settings.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={settings.logoUrl} alt={brand} className="h-9 w-auto object-contain" />
+            ) : (
+              <span>{brand}</span>
+            )}
           </Link>
 
-          <div className="flex items-center gap-3">
-            {/* Language Switcher */}
-            <div className="flex items-center gap-1 text-xs font-medium border border-[#141414]/15 rounded-full px-2 py-0.5 bg-white/70">
-              <Globe size={13} className="text-[#C5A059]" />
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1 text-xs font-medium border border-black/15 rounded-full px-2 py-0.5 bg-white/75">
+              <Globe size={13} style={{ color: settings.accentColor }} />
               {(['fr', 'ar', 'en'] as const).map((lng) => (
                 <button
                   key={lng}
                   onClick={() => switchLocale(lng)}
                   className={`px-1.5 py-0.5 rounded-full uppercase transition-colors text-[11px] ${
-                    locale === lng ? 'bg-[#141414] text-white' : 'text-[#141414]/60 hover:text-[#141414]'
+                    locale === lng ? 'bg-black text-white' : 'text-black/60 hover:text-black'
                   }`}
                 >
                   {lng}
@@ -87,17 +116,19 @@ export function Navbar() {
               ))}
             </div>
 
-            {/* Shopping Bag Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={openCart}
-              className="relative p-2 rounded-full hover:bg-[#141414]/5 transition-colors"
+              className="relative p-2 rounded-full hover:bg-black/5 transition-colors"
               aria-label={t('nav.cart')}
             >
               <ShoppingBag size={20} strokeWidth={1.5} />
               {totalItems > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#C5A059] text-white text-[10px] flex items-center justify-center font-bold">
+                <span
+                  style={{ backgroundColor: settings.accentColor }}
+                  className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-white text-[10px] flex items-center justify-center font-bold"
+                >
                   {totalItems}
                 </span>
               )}
@@ -106,13 +137,22 @@ export function Navbar() {
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden bg-[#FAF8F5] border-b border-[#141414]/10 px-6 py-4 flex flex-col gap-4 text-xs uppercase tracking-widest">
-            <Link href={`/${locale}`} onClick={() => setMobileOpen(false)}>
-              {t('nav.home')}
-            </Link>
-            <Link href={`/${locale}#collections`} onClick={() => setMobileOpen(false)}>
-              {t('nav.collections')}
-            </Link>
+          <div
+            style={{ backgroundColor: settings.bgColor }}
+            className="md:hidden border-b border-black/10 px-6 py-4 flex flex-col gap-3 text-xs uppercase tracking-widest"
+          >
+            <Link href={`/${locale}`} onClick={() => setMobileOpen(false)}>{t('nav.home')}</Link>
+            <Link href={`/${locale}#collections`} onClick={() => setMobileOpen(false)}>{t('nav.collections')}</Link>
+            {settings.showDeliverySection && (
+              <Link href={`/${locale}#delivery`} onClick={() => setMobileOpen(false)}>
+                {locale === 'ar' ? 'أسعار التوصيل (58 ولاية)' : 'Tarifs Livraison 58 Wilayas'}
+              </Link>
+            )}
+            {settings.showOrderTracking && (
+              <Link href={`/${locale}/track`} onClick={() => setMobileOpen(false)}>
+                {locale === 'ar' ? 'تتبع طلبي' : 'Suivi de Commande'}
+              </Link>
+            )}
           </div>
         )}
       </nav>

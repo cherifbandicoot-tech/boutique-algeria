@@ -1,75 +1,79 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { ALGERIA_WILAYAS } from '@/lib/wilayas';
+import { getSiteSettings } from '@/lib/settings';
+import { getCachedEcomTarifs, getCachedEcomWilayas, getEcomCredentials } from '@/lib/ecom';
 
-// In-memory cache for live E-com Delivery rates (cache for 1 hour to ensure ultra-fast UX)
-let cachedFees: Record<number, { homeDeliveryDzd: number; stopDeskDzd: number }> | null = null;
-let cacheExpiresAt = 0;
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
+  const all = searchParams.get('all') === 'true';
   const wilayaCode = parseInt(searchParams.get('wilaya') || '16', 10);
 
-  const apiId = process.env.ECOM_API_ID;
-  const apiToken = process.env.ECOM_API_TOKEN;
+  const [dbWilayas, settings, liveTarifs, liveWilayas] = await Promise.all([
+    prisma.wilayaShipping.findMany({ orderBy: { code: 'asc' } }).catch(() => []),
+    getSiteSettings(),
+    getCachedEcomTarifs(),
+    getCachedEcomWilayas(),
+  ]);
 
-  // 1. Try to fetch live rates from E-com Delivery if cache expired
-  const now = Date.now();
-  if (!cachedFees || now > cacheExpiresAt) {
-    if (apiId && apiToken) {
-      try {
-        const res = await fetch('https://api.ecomdelivery.dz/v1/tarifs', {
-          headers: {
-            'api-key': apiId,
-            'api-token': apiToken,
-            'Authorization': `Bearer ${apiToken}`,
-            'Accept': 'application/json',
-          },
-          // 3-second timeout so customers never experience slow dropdowns
-          signal: AbortSignal.timeout(3000),
-        });
+  const dbMap = new Map(dbWilayas.map((w) => [w.code, w]));
+  const liveWilayaMap = new Map((liveWilayas || []).map((w) => [w.id, w]));
 
-        if (res.ok) {
-          const data = await res.json();
-          // Map E-com Delivery real tariff table into memory
-          if (Array.isArray(data) || typeof data === 'object') {
-            cachedFees = {};
-            const list = Array.isArray(data) ? data : Object.values(data);
-            for (const item of list as any[]) {
-              const code = parseInt(item.wilaya_id || item.code || item.wilaya_code, 10);
-              if (code >= 1 && code <= 58) {
-                cachedFees[code] = {
-                  homeDeliveryDzd: Number(item.tarif_domicile || item.home || item.price || 0),
-                  stopDeskDzd: Number(item.tarif_stopdesk || item.stopdesk || item.desk_price || 0),
-                };
-              }
-            }
-            cacheExpiresAt = now + 1000 * 60 * 60; // 1-hour cache
-          }
-        }
-      } catch (err) {
-        console.warn('E-com live fee lookup timeout, using fallback rates', err);
-      }
-    }
+  const merged = ALGERIA_WILAYAS.map((def) => {
+    const db = dbMap.get(def.code);
+    const liveRate = liveTarifs?.byWilaya[def.code];
+    const liveInfo = liveWilayaMap.get(def.code);
+
+    const homeDeliveryDzd = db
+      ? db.homeDeliveryDzd
+      : liveRate && liveRate.domicile > 0
+      ? liveRate.domicile
+      : def.homeDeliveryDzd;
+
+    const stopDeskDzd = db
+      ? db.stopDeskDzd
+      : liveRate && liveRate.stopdesk > 0
+      ? liveRate.stopdesk
+      : def.stopDeskDzd;
+
+    return {
+      code: def.code,
+      nameFr: db?.nameFr || liveInfo?.libelle || def.nameFr,
+      nameAr: db?.nameAr || def.nameAr,
+      homeDeliveryDzd,
+      stopDeskDzd,
+      ecomHomeDzd: liveRate?.domicile ?? null,
+      ecomDeskDzd: liveRate?.stopdesk ?? null,
+      homeAvailable: liveInfo ? liveInfo.domicile : true,
+      stopdeskAvailable: liveInfo ? liveInfo.stopdesk : true,
+      delay: db?.delay || def.delay || settings.defaultDeliveryDelay,
+      isActive: db?.isActive ?? true,
+      isLive: Boolean(liveRate),
+    };
+  });
+
+  if (all) {
+    return NextResponse.json({
+      wilayas: merged,
+      freeShippingThresholdDzd: settings.freeShippingThresholdDzd,
+      ecomConfigured: getEcomCredentials().configured,
+    });
   }
 
-  // 2. Return live rate for requested Wilaya (or fallback to contract tariff table)
-  const defaultWilaya = ALGERIA_WILAYAS.find((w) => w.code === wilayaCode) || ALGERIA_WILAYAS[15];
-  const liveRate = cachedFees?.[wilayaCode];
-
-  const homeDeliveryDzd = liveRate?.homeDeliveryDzd && liveRate.homeDeliveryDzd > 0 
-    ? liveRate.homeDeliveryDzd 
-    : defaultWilaya.homeDeliveryDzd;
-
-  const stopDeskDzd = liveRate?.stopDeskDzd && liveRate.stopDeskDzd > 0 
-    ? liveRate.stopDeskDzd 
-    : defaultWilaya.stopDeskDzd;
-
+  const found = merged.find((w) => w.code === wilayaCode) || merged[15];
   return NextResponse.json({
-    wilayaCode,
-    wilayaName: defaultWilaya.nameFr,
-    homeDeliveryDzd,
-    stopDeskDzd,
-    delay: defaultWilaya.delay,
-    isLive: Boolean(liveRate),
+    wilayaCode: found.code,
+    wilayaName: found.nameFr,
+    wilayaNameAr: found.nameAr,
+    homeDeliveryDzd: found.homeDeliveryDzd,
+    stopDeskDzd: found.stopDeskDzd,
+    homeAvailable: found.homeAvailable,
+    stopdeskAvailable: found.stopdeskAvailable,
+    delay: found.delay,
+    isActive: found.isActive,
+    isLive: found.isLive,
+    freeShippingThresholdDzd: settings.freeShippingThresholdDzd,
   });
 }
