@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ArrowRight, ArrowLeft, Sparkles, Truck, ShieldCheck, Eye, Search, MapPin, Building2, Clock,
+  ArrowRight, ArrowLeft, Sparkles, Truck, ShieldCheck, Eye, Search, ShoppingBag,
 } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
@@ -37,16 +37,6 @@ export interface CategoryItem {
   nameEn: string;
 }
 
-interface WilayaFeeRow {
-  code: number;
-  nameFr: string;
-  nameAr: string;
-  homeDeliveryDzd: number;
-  stopDeskDzd: number;
-  delay: string;
-  isActive: boolean;
-}
-
 export function HeroSection({
   products,
   categories = [],
@@ -63,16 +53,7 @@ export function HeroSection({
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
-  const [wilayas, setWilayas] = useState<WilayaFeeRow[]>([]);
-  const [wilayaSearch, setWilayaSearch] = useState('');
-
-  useEffect(() => {
-    if (!settings.showDeliverySection) return;
-    fetch('/api/delivery-fees?all=true')
-      .then((r) => r.json())
-      .then((d) => setWilayas(d.wilayas || []))
-      .catch(() => {});
-  }, [settings.showDeliverySection]);
+  const [quickOpenId, setQuickOpenId] = useState<string | null>(null);
 
   const badge = locale === 'ar' ? settings.heroBadgeAr : locale === 'en' ? settings.heroBadgeEn : settings.heroBadgeFr;
   const heroTitle = locale === 'ar' ? settings.heroTitleAr : locale === 'en' ? settings.heroTitleEn : settings.heroTitleFr;
@@ -94,52 +75,55 @@ export function HeroSection({
     return matchesCat && matchesQ;
   });
 
-  const filteredWilayas = wilayas.filter((w) => {
-    if (!w.isActive) return false;
-    const q = wilayaSearch.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      w.nameFr.toLowerCase().includes(q) ||
-      w.nameAr.includes(q) ||
-      String(w.code).padStart(2, '0').includes(q)
-    );
-  });
+  const marqueeItems =
+    locale === 'ar'
+      ? ['دار نيرافا للأزياء الراقية', 'توصيل سريع 58 ولاية', 'الدفع نقداً عند الاستلام', 'تطريز يدوي أصيل', 'توصيل مع E-com Delivery']
+      : ['HAUTE COUTURE ALGÉRIENNE', 'LIVRAISON EXPRESS 58 WILAYAS', 'PAIEMENT À LA LIVRAISON', 'BRODERIE ARTISANALE', 'PARTENAIRE E-COM DELIVERY'];
 
   return (
     <div className="overflow-hidden">
       {settings.showHero && (
-        <section className="relative min-h-[82vh] flex items-center pt-28 pb-14">
-          <div
+        <section className="relative min-h-[86vh] flex items-center pt-28 pb-16">
+          {/* Ambient Animated Orbs */}
+          <motion.div
+            animate={{ y: [0, -18, 0], scale: [1, 1.07, 1] }}
+            transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
             style={{ backgroundColor: `${settings.accentColor}26` }}
-            className="absolute top-10 right-10 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+            className="absolute top-12 right-10 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+          />
+          <motion.div
+            animate={{ y: [0, 16, 0], scale: [1, 1.05, 1] }}
+            transition={{ repeat: Infinity, duration: 10, ease: 'easeInOut' }}
+            style={{ backgroundColor: `${settings.primaryColor}14` }}
+            className="absolute bottom-4 left-0 w-80 h-80 rounded-full blur-3xl pointer-events-none"
           />
 
           <div className="max-w-7xl mx-auto px-6 md:px-12 w-full grid md:grid-cols-12 gap-12 items-center">
             <div className="md:col-span-7 space-y-6 z-10 text-start">
               <motion.div
-                initial={{ opacity: 0, y: 15 }}
+                initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
                 style={{ borderColor: `${settings.accentColor}66`, color: settings.accentColor }}
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border bg-white/80 text-xs uppercase tracking-[0.2em] font-medium"
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border bg-white/85 backdrop-blur-xs text-xs uppercase tracking-[0.2em] font-medium shadow-xs"
               >
                 <Sparkles size={13} />
                 <span>{badge}</span>
               </motion.div>
 
               <motion.h1
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 26 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.1 }}
-                className="text-4xl sm:text-5xl lg:text-6xl font-serif font-medium leading-[1.15]"
+                transition={{ duration: 0.75, delay: 0.1 }}
+                className="text-4xl sm:text-5xl lg:text-6xl font-serif font-medium leading-[1.12]"
               >
                 {heroTitle}
               </motion.h1>
 
               <motion.p
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 22 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.2 }}
+                transition={{ duration: 0.75, delay: 0.2 }}
                 className="text-base sm:text-lg opacity-75 max-w-lg leading-relaxed"
               >
                 {heroSubtitle}
@@ -148,26 +132,28 @@ export function HeroSection({
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.3 }}
+                transition={{ duration: 0.75, delay: 0.3 }}
                 className="pt-2 flex flex-wrap gap-3"
               >
                 <motion.a
                   href="#collections"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
                   style={{ backgroundColor: settings.primaryColor }}
-                  className="inline-flex items-center gap-3 text-white px-8 py-4 rounded-full text-xs uppercase tracking-[0.2em] font-semibold hover:opacity-90 transition-opacity shadow-lg"
+                  className="inline-flex items-center gap-3 text-white px-8 py-4 rounded-full text-xs uppercase tracking-[0.2em] font-semibold shadow-xl transition-shadow"
                 >
                   <span>{heroCta}</span>
                   <ArrowIcon size={16} />
                 </motion.a>
                 {settings.showOrderTracking && (
-                  <Link
-                    href={`/${locale}/track`}
-                    className="inline-flex items-center gap-2 px-6 py-4 rounded-full border border-black/20 bg-white/75 text-xs uppercase tracking-[0.16em] font-semibold hover:bg-white transition-colors"
-                  >
-                    <span>{locale === 'ar' ? 'تتبع طلبي' : 'Suivre ma commande'}</span>
-                  </Link>
+                  <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}>
+                    <Link
+                      href={`/${locale}/track`}
+                      className="inline-flex items-center gap-2 px-6 py-4 rounded-full border border-black/20 bg-white/85 backdrop-blur-xs text-xs uppercase tracking-[0.16em] font-semibold hover:bg-white transition-colors"
+                    >
+                      <span>{locale === 'ar' ? 'تتبع طلبي' : 'Suivre ma commande'}</span>
+                    </Link>
+                  </motion.div>
                 )}
               </motion.div>
 
@@ -186,35 +172,83 @@ export function HeroSection({
             </div>
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.94, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.85, delay: 0.15 }}
-              className="md:col-span-5 flex justify-center"
+              className="md:col-span-5 flex justify-center relative"
             >
-              <div className="relative w-full max-w-[380px] h-[460px] sm:h-[520px] rounded-[2rem] overflow-hidden shadow-2xl border-2 border-white/60 bg-stone-100">
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
+                className="relative w-full max-w-[390px] h-[470px] sm:h-[530px] rounded-[2.2rem] overflow-hidden shadow-2xl border-2 border-white/70 bg-stone-100"
+              >
                 <Image
                   src={settings.heroImageUrl}
                   alt={heroTitle}
                   fill
                   priority
-                  sizes="(max-width: 768px) 100vw, 380px"
+                  sizes="(max-width: 768px) 100vw, 390px"
                   className="object-cover object-center"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent pointer-events-none" />
-              </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />
+
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.6 }}
+                  className="absolute bottom-4 inset-x-4 bg-white/90 backdrop-blur-md rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-lg"
+                >
+                  <div>
+                    <p className="font-serif font-semibold text-sm text-black">
+                      {locale === 'ar' ? settings.brandNameAr : settings.brandName}
+                    </p>
+                    <p className="text-[11px] text-black/65">58 Wilayas • E-com Delivery</p>
+                  </div>
+                  <span
+                    style={{ backgroundColor: settings.primaryColor }}
+                    className="px-3 py-1 rounded-full text-white text-[10px] font-bold uppercase tracking-wider"
+                  >
+                    COD
+                  </span>
+                </motion.div>
+              </motion.div>
             </motion.div>
           </div>
         </section>
       )}
 
-      {/* Collections + Search + Category Filter */}
-      <section id="collections" className={`max-w-7xl mx-auto px-6 md:px-12 ${settings.showHero ? 'py-16' : 'pt-32 pb-16'}`}>
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+      {/* Animated Editorial Marquee Strip */}
+      <div
+        style={{ backgroundColor: settings.primaryColor }}
+        className="py-3.5 text-[#FAF8F5] overflow-hidden border-y border-white/15"
+      >
+        <motion.div
+          animate={{ x: isRtl ? ['0%', '50%'] : ['0%', '-50%'] }}
+          transition={{ repeat: Infinity, duration: 28, ease: 'linear' }}
+          className="flex items-center gap-10 whitespace-nowrap w-max text-[11px] uppercase tracking-[0.25em] font-medium"
+        >
+          {[...marqueeItems, ...marqueeItems].map((txt, idx) => (
+            <span key={idx} className="inline-flex items-center gap-4">
+              <Sparkles size={11} style={{ color: settings.accentColor }} />
+              <span>{txt}</span>
+            </span>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Collections + Animated Search & Category Filter */}
+      <section id="collections" className="max-w-7xl mx-auto px-6 md:px-12 py-20">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12"
+        >
           <div>
-            <h2 className="text-3xl md:text-4xl font-serif font-medium">{t('nav.collections')}</h2>
-            <p className="text-xs opacity-60 mt-1">
-              {filteredProducts.length} {locale === 'ar' ? 'قطعة متوفرة' : 'pièces disponibles'}
+            <p className="text-[11px] uppercase tracking-[0.25em] font-semibold" style={{ color: settings.accentColor }}>
+              {locale === 'ar' ? 'تشكيلة حصرية' : 'Sélection Exclusive'}
             </p>
+            <h2 className="text-3xl md:text-4xl font-serif font-medium mt-1">{t('nav.collections')}</h2>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -226,7 +260,7 @@ export function HeroSection({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={locale === 'ar' ? 'ابحثي عن موديل...' : 'Rechercher une pièce...'}
-                  className="pl-9 pr-4 py-2.5 rounded-full bg-white border border-black/15 text-xs focus:outline-none w-56"
+                  className="pl-9 pr-4 py-2.5 rounded-full bg-white border border-black/15 text-xs focus:outline-none w-56 shadow-2xs"
                 />
               </div>
             )}
@@ -235,8 +269,8 @@ export function HeroSection({
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setSelectedCategory('ALL')}
-                  className={`px-4 py-2 rounded-full text-xs font-semibold border transition-colors ${
-                    selectedCategory === 'ALL' ? 'bg-black text-white border-black' : 'bg-white border-black/15'
+                  className={`px-4 py-2 rounded-full text-xs font-semibold border transition-all ${
+                    selectedCategory === 'ALL' ? 'bg-black text-white border-black shadow-sm' : 'bg-white border-black/15 hover:border-black/40'
                   }`}
                 >
                   {locale === 'ar' ? 'الكل' : 'Tout'}
@@ -245,8 +279,8 @@ export function HeroSection({
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-4 py-2 rounded-full text-xs font-semibold border transition-colors ${
-                      selectedCategory === cat.id ? 'bg-black text-white border-black' : 'bg-white border-black/15'
+                    className={`px-4 py-2 rounded-full text-xs font-semibold border transition-all ${
+                      selectedCategory === cat.id ? 'bg-black text-white border-black shadow-sm' : 'bg-white border-black/15 hover:border-black/40'
                     }`}
                   >
                     {locale === 'ar' ? cat.nameAr : locale === 'en' ? cat.nameEn : cat.nameFr}
@@ -255,166 +289,128 @@ export function HeroSection({
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProducts.map((item, idx) => {
-            const title = locale === 'ar' ? item.titleAr : locale === 'en' ? item.titleEn : item.titleFr;
-            const linkHref = item.slug ? `/${locale}/products/${item.slug}` : `/${locale}/products/${item.id}`;
-            const hasDiscount = item.compareAtPriceDzd && item.compareAtPriceDzd > item.priceDzd;
+        <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <AnimatePresence mode="popLayout">
+            {filteredProducts.map((item, idx) => {
+              const title = locale === 'ar' ? item.titleAr : locale === 'en' ? item.titleEn : item.titleFr;
+              const linkHref = item.slug ? `/${locale}/products/${item.slug}` : `/${locale}/products/${item.id}`;
+              const hasDiscount = item.compareAtPriceDzd && item.compareAtPriceDzd > item.priceDzd;
+              const isQuickOpen = quickOpenId === item.id;
 
-            return (
-              <motion.article
-                key={item.id}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.5, delay: Math.min(idx * 0.06, 0.3) }}
-                className="group"
-              >
-                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-stone-200 mb-4 shadow-sm border border-black/5">
-                  <Link href={linkHref}>
-                    <Image
-                      src={item.img}
-                      alt={title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                  </Link>
-
-                  {hasDiscount && (
-                    <span
-                      style={{ backgroundColor: settings.primaryColor }}
-                      className="absolute top-3 left-3 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
-                    >
-                      -{Math.round(((item.compareAtPriceDzd! - item.priceDzd) / item.compareAtPriceDzd!) * 100)}%
-                    </span>
-                  )}
-
-                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Link
-                      href={linkHref}
-                      className="p-2.5 rounded-full bg-white/90 text-black hover:bg-black hover:text-white transition-colors shadow-md block"
-                      title="Voir le produit"
-                    >
-                      <Eye size={16} />
+              return (
+                <motion.article
+                  layout
+                  key={item.id}
+                  initial={{ opacity: 0, y: 24, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.45, delay: Math.min(idx * 0.05, 0.25) }}
+                  whileHover={{ y: -6 }}
+                  className="group"
+                >
+                  <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-stone-200 mb-4 shadow-md border border-black/5">
+                    <Link href={linkHref}>
+                      <Image
+                        src={item.img}
+                        alt={title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
                     </Link>
-                  </div>
 
-                  <div className="absolute inset-x-3 bottom-3 bg-white/95 backdrop-blur-md rounded-2xl p-3 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 shadow-xl">
-                    <p className="text-[10px] uppercase tracking-widest text-center opacity-60 mb-2 font-medium">
-                      {t('product.selectSize')}
-                    </p>
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {item.sizes.map((size) => (
-                        <button
-                          key={size}
-                          onClick={() =>
-                            addItem({
-                              productId: item.id,
-                              slug: item.slug,
-                              titleFr: item.titleFr,
-                              titleAr: item.titleAr,
-                              titleEn: item.titleEn,
-                              priceDzd: item.priceDzd,
-                              size,
-                              image: item.img,
-                            })
-                          }
-                          className="py-2 rounded-lg text-xs font-semibold border border-black/15 hover:bg-black hover:text-white transition-colors"
-                        >
-                          {size}
-                        </button>
-                      ))}
+                    {hasDiscount && (
+                      <span
+                        style={{ backgroundColor: settings.primaryColor }}
+                        className="absolute top-3 left-3 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm"
+                      >
+                        -{Math.round(((item.compareAtPriceDzd! - item.priceDzd) / item.compareAtPriceDzd!) * 100)}%
+                      </span>
+                    )}
+
+                    <div className="absolute top-3 right-3 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setQuickOpenId(isQuickOpen ? null : item.id)}
+                        className="md:hidden p-2.5 rounded-full bg-white/95 text-black shadow-md"
+                        aria-label="Ajout rapide"
+                      >
+                        <ShoppingBag size={15} />
+                      </button>
+                      <Link
+                        href={linkHref}
+                        className="p-2.5 rounded-full bg-white/95 text-black hover:bg-black hover:text-white transition-colors shadow-md md:opacity-0 md:group-hover:opacity-100"
+                        title="Voir le produit"
+                      >
+                        <Eye size={15} />
+                      </Link>
+                    </div>
+
+                    <div
+                      className={`absolute inset-x-3 bottom-3 bg-white/95 backdrop-blur-md rounded-2xl p-3 transition-all duration-300 shadow-xl ${
+                        isQuickOpen
+                          ? 'translate-y-0 opacity-100'
+                          : 'translate-y-4 opacity-0 pointer-events-none md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-hover:pointer-events-auto'
+                      }`}
+                    >
+                      <p className="text-[10px] uppercase tracking-widest text-center opacity-60 mb-2 font-medium">
+                        {t('product.selectSize')}
+                      </p>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {item.sizes.map((size) => (
+                          <motion.button
+                            whileTap={{ scale: 0.92 }}
+                            key={size}
+                            onClick={() => {
+                              setQuickOpenId(null);
+                              addItem({
+                                productId: item.id,
+                                slug: item.slug,
+                                titleFr: item.titleFr,
+                                titleAr: item.titleAr,
+                                titleEn: item.titleEn,
+                                priceDzd: item.priceDzd,
+                                size,
+                                image: item.img,
+                              });
+                            }}
+                            className="py-2 rounded-lg text-xs font-semibold border border-black/15 hover:bg-black hover:text-white transition-colors"
+                          >
+                            {size}
+                          </motion.button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-start justify-between gap-2 px-1">
-                  <Link href={linkHref} className="hover:opacity-75 transition-opacity">
-                    <h3 className="font-medium text-base">{title}</h3>
-                    {item.categoryNameFr && (
-                      <p className="text-[11px] opacity-55">
-                        {locale === 'ar' ? item.categoryNameAr : locale === 'en' ? item.categoryNameEn : item.categoryNameFr}
-                      </p>
-                    )}
-                  </Link>
-                  <div className="text-end shrink-0">
-                    <span className="text-sm font-semibold" style={{ color: settings.accentColor }}>
-                      {item.priceDzd.toLocaleString()} {t('product.currency')}
-                    </span>
-                    {hasDiscount && (
-                      <p className="text-[11px] line-through opacity-45">
-                        {item.compareAtPriceDzd!.toLocaleString()} {t('product.currency')}
-                      </p>
-                    )}
+                  <div className="flex items-start justify-between gap-2 px-1">
+                    <Link href={linkHref} className="hover:opacity-75 transition-opacity">
+                      <h3 className="font-medium text-base">{title}</h3>
+                      {item.categoryNameFr && (
+                        <p className="text-[11px] opacity-55">
+                          {locale === 'ar' ? item.categoryNameAr : locale === 'en' ? item.categoryNameEn : item.categoryNameFr}
+                        </p>
+                      )}
+                    </Link>
+                    <div className="text-end shrink-0">
+                      <span className="text-sm font-semibold" style={{ color: settings.accentColor }}>
+                        {item.priceDzd.toLocaleString()} {t('product.currency')}
+                      </span>
+                      {hasDiscount && (
+                        <p className="text-[11px] line-through opacity-45">
+                          {item.compareAtPriceDzd!.toLocaleString()} {t('product.currency')}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </motion.article>
-            );
-          })}
-        </div>
+                </motion.article>
+              );
+            })}
+          </AnimatePresence>
+        </motion.div>
       </section>
-
-      {/* Live 58-Wilaya E-com Delivery Tariffs Explorer */}
-      {settings.showDeliverySection && wilayas.length > 0 && (
-        <section id="delivery" className="max-w-7xl mx-auto px-6 md:px-12 py-12">
-          <div className="bg-white rounded-3xl p-6 md:p-10 border border-black/10 shadow-xs space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <div className="inline-flex items-center gap-2 text-xs uppercase tracking-widest font-semibold" style={{ color: settings.accentColor }}>
-                  <Truck size={14} />
-                  <span>E-com Delivery • 58 Wilayas</span>
-                </div>
-                <h2 className="font-serif text-2xl md:text-3xl mt-1">
-                  {locale === 'ar' ? 'أسعار ومواعيد التوصيل لجميع الولايات' : 'Tarifs & Délais de Livraison par Wilaya'}
-                </h2>
-                {settings.freeShippingThresholdDzd > 0 && (
-                  <p className="text-xs text-emerald-700 font-semibold mt-1">
-                    Livraison gratuite dès {settings.freeShippingThresholdDzd.toLocaleString()} DZD d’achat !
-                  </p>
-                )}
-              </div>
-
-              <div className="relative w-full md:w-72">
-                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 opacity-40" />
-                <input
-                  type="text"
-                  value={wilayaSearch}
-                  onChange={(e) => setWilayaSearch(e.target.value)}
-                  placeholder={locale === 'ar' ? 'ابحثي بالولاية أو الرقم...' : 'Chercher une wilaya (ex: Alger, 31)...'}
-                  className="w-full pl-9 pr-4 py-2.5 rounded-full bg-stone-50 border border-black/15 text-xs focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[380px] overflow-y-auto pr-1">
-              {filteredWilayas.map((w) => (
-                <div key={w.code} className="p-3.5 rounded-2xl bg-stone-50/80 border border-black/8 flex items-center justify-between gap-3 text-xs">
-                  <div>
-                    <p className="font-semibold flex items-center gap-1.5">
-                      <MapPin size={12} style={{ color: settings.accentColor }} />
-                      <span>{String(w.code).padStart(2, '0')} - {locale === 'ar' ? w.nameAr : w.nameFr}</span>
-                    </p>
-                    <p className="text-[11px] opacity-60 flex items-center gap-1 mt-0.5">
-                      <Clock size={10} /> {w.delay}
-                    </p>
-                  </div>
-                  <div className="text-end shrink-0 space-y-0.5">
-                    <p className="font-semibold flex items-center justify-end gap-1">
-                      <Truck size={11} /> {w.homeDeliveryDzd} DZD
-                    </p>
-                    <p className="text-[11px] opacity-75 flex items-center justify-end gap-1">
-                      <Building2 size={11} /> {w.stopDeskDzd} DZD
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
     </div>
   );
 }
