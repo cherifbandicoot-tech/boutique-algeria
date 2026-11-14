@@ -9,19 +9,19 @@ export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
     const rate = checkRateLimit(ip, 5, 15 * 60 * 1000);
     if (!rate.allowed) {
-      return NextResponse.json({ error: 'Too many requests. Please wait a few minutes.' }, { status: 429 });
+      return NextResponse.json({ error: 'Trop de requêtes. Veuillez patienter.' }, { status: 429 });
     }
 
     const parsed = createOrderSchema.safeParse(await req.json().catch(() => null));
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.issues[0]?.message || 'Invalid order' }, { status: 400 });
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || 'Données invalides' }, { status: 400 });
     }
 
     const { customerName, customerPhone, wilayaCode, commune, address, deliveryType, items } = parsed.data;
     const wilaya = ALGERIA_WILAYAS.find((w) => w.code === wilayaCode);
-    if (!wilaya) return NextResponse.json({ error: 'Invalid Wilaya' }, { status: 400 });
+    if (!wilaya) return NextResponse.json({ error: 'Wilaya invalide' }, { status: 400 });
 
-    // Fetch authoritative products & variants from PostgreSQL
+    // Fetch authoritative prices directly from PostgreSQL
     const dbProducts = await prisma.product.findMany({
       where: {
         OR: [
@@ -38,9 +38,9 @@ export async function POST(req: NextRequest) {
 
     for (const item of items) {
       const product = dbProducts.find((p) => p.id === item.productId || p.slug === item.productId);
-      if (!product) return NextResponse.json({ error: 'Product unavailable' }, { status: 400 });
+      if (!product) return NextResponse.json({ error: 'Article indisponible' }, { status: 400 });
       const variant = product.variants.find((v) => v.size === item.size) || product.variants[0];
-      if (!variant) return NextResponse.json({ error: 'Variant unavailable' }, { status: 400 });
+      if (!variant) return NextResponse.json({ error: 'Taille indisponible' }, { status: 400 });
 
       subtotalDzd += product.priceDzd * item.quantity;
       orderItemsData.push({
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Dynamic Delivery Rate lookup
     const shippingDzd = deliveryType === 'HOME' ? wilaya.homeDeliveryDzd : wilaya.stopDeskDzd;
     const totalDzd = subtotalDzd + shippingDzd;
     const orderNumber = `DZ-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -73,9 +74,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, orderNumber: order.orderNumber, totalDzd });
+    return NextResponse.json({ success: true, orderNumber: order.orderNumber, totalDzd, shippingDzd });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    console.error('Order creation error:', err);
+    return NextResponse.json({ error: 'Erreur lors de la création de la commande' }, { status: 500 });
   }
 }

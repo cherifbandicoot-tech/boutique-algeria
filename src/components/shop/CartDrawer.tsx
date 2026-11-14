@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Minus, Trash2, CheckCircle2, Truck, Building2, Loader2, Clock, ShieldCheck } from 'lucide-react';
+import { X, Plus, Minus, Trash2, CheckCircle2, Truck, Building2, Loader2, Clock, Sparkles } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { useCart } from './CartContext';
@@ -24,9 +24,44 @@ export function CartDrawer() {
   const [errorMsg, setErrorMsg] = useState('');
   const [confirmedOrder, setConfirmedOrder] = useState<string | null>(null);
 
+  // Live E-com Delivery rates state
+  const [loadingFee, setLoadingFee] = useState(false);
+  const [homeDeliveryDzd, setHomeDeliveryDzd] = useState<number>(400);
+  const [stopDeskDzd, setStopDeskDzd] = useState<number>(300);
+  const [deliveryDelay, setDeliveryDelay] = useState<string>('24h (Express)');
+  const [isLiveFee, setIsLiveFee] = useState<boolean>(false);
+
+  // Fetch real-time live E-com Delivery fee whenever Wilaya changes
+  useEffect(() => {
+    let isCancelled = false;
+    async function fetchLiveFee() {
+      setLoadingFee(true);
+      try {
+        const res = await fetch(`/api/delivery-fees?wilaya=${wilayaCode}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!isCancelled) {
+            setHomeDeliveryDzd(data.homeDeliveryDzd);
+            setStopDeskDzd(data.stopDeskDzd);
+            setDeliveryDelay(data.delay);
+            setIsLiveFee(data.isLive);
+          }
+        }
+      } catch {
+        // Handled silently
+      } finally {
+        if (!isCancelled) setLoadingFee(false);
+      }
+    }
+
+    fetchLiveFee();
+    return () => {
+      isCancelled = true;
+    };
+  }, [wilayaCode]);
+
   const selectedWilaya = ALGERIA_WILAYAS.find((w) => w.code === wilayaCode) || ALGERIA_WILAYAS[15];
-  const shippingDzd =
-    deliveryType === 'HOME' ? selectedWilaya.homeDeliveryDzd : selectedWilaya.stopDeskDzd;
+  const shippingDzd = deliveryType === 'HOME' ? homeDeliveryDzd : stopDeskDzd;
   const totalDzd = subtotalDzd + (items.length > 0 ? shippingDzd : 0);
 
   const handleOrder = async (e: React.FormEvent) => {
@@ -97,7 +132,10 @@ export function CartDrawer() {
             <div className="p-5 border-b border-[#141414]/10 flex items-center justify-between">
               <div>
                 <h2 className="font-serif text-2xl text-[#141414]">{t('nav.cart')}</h2>
-                <p className="text-[11px] text-[#141414]/60">MAISON NERAVA • E-com Delivery</p>
+                <div className="flex items-center gap-1.5 text-[11px] text-[#13382C] font-semibold mt-0.5">
+                  <Sparkles size={11} className="text-[#C5A059]" />
+                  <span>Tarifs E-com Delivery Officiels</span>
+                </div>
               </div>
               <button
                 onClick={() => {
@@ -120,8 +158,8 @@ export function CartDrawer() {
                   </h3>
                   <p className="text-xs text-[#141414]/70 leading-relaxed max-w-xs mx-auto">
                     {locale === 'ar'
-                      ? `رقم الطلب الخاص بك: ${confirmedOrder}. سيتصل بك فريقنا للتأكيد قبل إرساله مع E-com Delivery.`
-                      : `Votre commande N° ${confirmedOrder} est enregistrée. Notre équipe vous contactera par téléphone pour confirmer la livraison avec E-com Delivery.`}
+                      ? `رقم الطلب الخاص بك: ${confirmedOrder}. سيتصل بك فريق MAISON NERAVA لتأكيد المقاس قبل تسليمه إلى E-com Delivery.`
+                      : `Votre commande N° ${confirmedOrder} est enregistrée. Notre équipe vous contactera par téléphone pour confirmer la commande avant expédition via E-com Delivery.`}
                   </p>
                 </div>
               ) : items.length === 0 ? (
@@ -187,7 +225,10 @@ export function CartDrawer() {
 
                     {/* Wilaya Selector with Live Delivery Fee Tag */}
                     <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-wider text-[#141414]/60 font-semibold">{t('checkout.wilaya')}</label>
+                      <div className="flex justify-between items-center text-[10px] uppercase tracking-wider text-[#141414]/60 font-semibold">
+                        <span>{t('checkout.wilaya')}</span>
+                        {loadingFee && <span className="text-[#9A7835] animate-pulse">Calcul du tarif en direct...</span>}
+                      </div>
                       <select
                         value={wilayaCode}
                         onChange={(e) => setWilayaCode(Number(e.target.value))}
@@ -195,7 +236,7 @@ export function CartDrawer() {
                       >
                         {ALGERIA_WILAYAS.map((w) => (
                           <option key={w.code} value={w.code}>
-                            {String(w.code).padStart(2, '0')} - {locale === 'ar' ? w.nameAr : w.nameFr} ({w.homeDeliveryDzd} DZD)
+                            {String(w.code).padStart(2, '0')} - {locale === 'ar' ? w.nameAr : w.nameFr}
                           </option>
                         ))}
                       </select>
@@ -210,38 +251,41 @@ export function CartDrawer() {
                       className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#141414]/15 text-xs focus:outline-none focus:border-[#C5A059]"
                     />
 
-                    {/* Home vs Stop Desk Switch */}
+                    {/* Home vs Stop Desk Switch with Real Live E-com Rates */}
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       <button
                         type="button"
                         onClick={() => setDeliveryType('HOME')}
-                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl border text-xs font-medium transition-all ${
+                        className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border text-xs font-semibold transition-all ${
                           deliveryType === 'HOME'
                             ? 'bg-[#141414] text-white border-[#141414]'
                             : 'bg-white border-[#141414]/15 text-[#141414]'
                         }`}
                       >
                         <Truck size={13} />
-                        <span>{t('checkout.homeDelivery')} ({selectedWilaya.homeDeliveryDzd} DZD)</span>
+                        <span>{t('checkout.homeDelivery')} ({homeDeliveryDzd} DZD)</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setDeliveryType('DESK')}
-                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl border text-xs font-medium transition-all ${
+                        className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border text-xs font-semibold transition-all ${
                           deliveryType === 'DESK'
                             ? 'bg-[#141414] text-white border-[#141414]'
                             : 'bg-white border-[#141414]/15 text-[#141414]'
                         }`}
                       >
                         <Building2 size={13} />
-                        <span>{t('checkout.stopDesk')} ({selectedWilaya.stopDeskDzd} DZD)</span>
+                        <span>{t('checkout.stopDesk')} ({stopDeskDzd} DZD)</span>
                       </button>
                     </div>
 
                     {/* Estimated Delivery Time Badge */}
-                    <div className="flex items-center gap-1.5 text-[11px] text-[#13382C] bg-emerald-50 px-3 py-1.5 rounded-xl font-medium">
-                      <Clock size={12} />
-                      <span>Délai E-com Delivery estimé : <strong>{selectedWilaya.delay}</strong></span>
+                    <div className="flex items-center justify-between text-[11px] text-[#13382C] bg-emerald-50 px-3 py-2 rounded-xl font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <Clock size={12} />
+                        <span>Délai estimé : <strong>{deliveryDelay}</strong></span>
+                      </div>
+                      <span className="text-[10px] uppercase tracking-wider text-[#C5A059] font-bold">E-com Delivery</span>
                     </div>
 
                     {deliveryType === 'HOME' && (
@@ -249,7 +293,7 @@ export function CartDrawer() {
                         type="text"
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
-                        placeholder="Adresse exacte ou point de repère (Optionnel)"
+                        placeholder="Adresse de livraison exacte (Optionnel)"
                         className="w-full px-4 py-2 rounded-xl bg-white border border-[#141414]/15 text-xs focus:outline-none"
                       />
                     )}
@@ -260,7 +304,7 @@ export function CartDrawer() {
               )}
             </div>
 
-            {/* Price + Delivery Breakdown Footer */}
+            {/* Transparent Subtotal + Live Delivery Breakdown */}
             {items.length > 0 && !confirmedOrder && (
               <div className="p-5 bg-white border-t border-[#141414]/10 space-y-2">
                 <div className="flex justify-between text-xs text-[#141414]/70">
