@@ -230,7 +230,7 @@ export default function AdminDashboard() {
 
   const compressImage = (file: File): Promise<File> =>
     new Promise((resolve) => {
-      if (file.size <= 900 * 1024) return resolve(file);
+      if (file.size <= 350 * 1024) return resolve(file);
       const img = new window.Image();
       const objUrl = URL.createObjectURL(file);
       img.onload = () => {
@@ -274,9 +274,11 @@ export default function AdminDashboard() {
       const fd = new FormData();
       fd.append('file', readyFile);
       const res = await fetch('/api/admin/upload-image', { method: 'POST', body: fd });
-      const data = await res.json();
+      const raw = await res.text();
+      let data: { url?: string; error?: string } = {};
+      try { data = JSON.parse(raw); } catch {}
       if (!res.ok || !data.url) {
-        alert(data.error || 'Erreur lors de l’envoi de la photo');
+        alert(data.error || `Erreur serveur (${res.status}) lors de l’envoi de la photo`);
         return null;
       }
       return data.url;
