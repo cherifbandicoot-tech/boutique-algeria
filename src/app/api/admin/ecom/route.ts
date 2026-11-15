@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       if (!order) return NextResponse.json({ error: 'Commande introuvable' }, { status: 404 });
 
       const itemsSummary = order.items
-        .map((i) => `${i.product.titleFr} (${i.variant?.size || 'Std'}) x${i.quantity}`)
+        .map((i) => `${i.product.titleFr} (${i.variant?.size || 'Std'}${i.variant?.colorName && i.variant.colorName !== 'Standard' ? ` - ${i.variant.colorName}` : ''}) x${i.quantity}`)
         .join(', ')
         .slice(0, 250);
 

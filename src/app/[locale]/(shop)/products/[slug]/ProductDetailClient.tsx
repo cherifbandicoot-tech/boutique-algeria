@@ -149,7 +149,7 @@ export function ProductDetailClient({ product, locale }: { product: ProductData;
 
           <p className="text-sm opacity-75 leading-relaxed whitespace-pre-line">{description}</p>
 
-          {colors.length > 1 && (
+          {(colors.length > 1 || (colors.length === 1 && colors[0].colorName !== 'Standard')) && (
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-wider font-medium">
                 {locale === 'ar' ? 'اللون' : 'Couleur'} : <strong>{selectedColor}</strong>

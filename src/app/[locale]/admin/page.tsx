@@ -17,7 +17,7 @@ interface AdminOrderItem {
   quantity: number;
   unitPriceDzd: number;
   product: { titleFr: string };
-  variant: { size: string; colorName: string };
+  variant: { size: string; colorName: string; colorHex?: string };
 }
 
 interface AdminOrder {
@@ -835,7 +835,16 @@ export default function AdminDashboard() {
                     <div className="flex flex-wrap gap-2 text-xs bg-stone-50 p-3 rounded-2xl">
                       {o.items.map((it) => (
                         <span key={it.id} className="px-2.5 py-1 rounded-lg bg-white border border-black/10">
-                          {it.product?.titleFr} — Taille <strong>{it.variant?.size}</strong> × {it.quantity} ({it.unitPriceDzd} DZD)
+                          <span className="inline-flex items-center gap-1.5 flex-wrap">
+  <span>{it.product?.titleFr} — Taille <strong>{it.variant?.size}</strong></span>
+  {it.variant?.colorName && (
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-stone-100 border border-black/10 text-[11px]">
+      <span className="w-2.5 h-2.5 rounded-full border border-black/20 inline-block" style={{ backgroundColor: it.variant.colorHex || '#141414' }} />
+      <span>Couleur : <strong>{it.variant.colorName}</strong></span>
+    </span>
+  )}
+  <span>× {it.quantity} ({it.unitPriceDzd} DZD)</span>
+</span>
                         </span>
                       ))}
                     </div>

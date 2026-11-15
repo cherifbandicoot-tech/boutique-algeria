@@ -66,7 +66,7 @@ export async function PATCH(req: NextRequest) {
         }
 
         const itemsSummary = existing.items
-          .map((i) => `${i.product.titleFr} (${i.variant?.size || 'Std'}) x${i.quantity}`)
+          .map((i) => `${i.product.titleFr} (${i.variant?.size || 'Std'}${i.variant?.colorName && i.variant.colorName !== 'Standard' ? ` - ${i.variant.colorName}` : ''}) x${i.quantity}`)
           .join(', ')
           .slice(0, 250);
         const totalQty = existing.items.reduce((s, i) => s + i.quantity, 0) || 1;

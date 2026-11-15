@@ -141,6 +141,7 @@ export async function POST(req: NextRequest) {
       unitPriceDzd: number;
       titleFr: string;
       size: string;
+      colorName: string;
     }[] = [];
 
     for (const item of items) {
@@ -149,7 +150,7 @@ export async function POST(req: NextRequest) {
 
       const variant =
         product.variants.find(
-          (v) => v.size === item.size && (!item.colorName || v.colorName === item.colorName)
+          (v) => v.size === item.size && (!item.colorName || v.colorName.trim().toLowerCase() === item.colorName.trim().toLowerCase())
         ) ||
         product.variants.find((v) => v.size === item.size) ||
         product.variants[0];
@@ -164,6 +165,7 @@ export async function POST(req: NextRequest) {
         unitPriceDzd: product.priceDzd,
         titleFr: product.titleFr,
         size: variant.size,
+        colorName: variant.colorName,
       });
     }
 
@@ -258,6 +260,7 @@ export async function POST(req: NextRequest) {
       items: orderItemsData.map((i) => ({
         title: i.titleFr,
         size: i.size,
+        colorName: i.colorName,
         quantity: i.quantity,
         unitPriceDzd: i.unitPriceDzd,
       })),

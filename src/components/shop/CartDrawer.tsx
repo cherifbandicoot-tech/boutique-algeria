@@ -323,7 +323,7 @@ export function CartDrawer() {
                   <div className="border-t border-b border-black/10 py-3 space-y-2 text-xs">
                     {receipt.items.map((it, idx) => (
                       <div key={idx} className="flex justify-between">
-                        <span>{it.title} ({it.size}) × {it.quantity}</span>
+                        <span>{it.title} ({it.size}{it.colorName && it.colorName !== 'Standard' ? ` • ${it.colorName}` : ''}) × {it.quantity}</span>
                         <span className="font-semibold">{(it.unitPriceDzd * it.quantity).toLocaleString()} DZD</span>
                       </div>
                     ))}

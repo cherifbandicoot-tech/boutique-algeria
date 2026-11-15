@@ -27,6 +27,9 @@ export default async function HomePage() {
     categoryNameEn: p.category?.nameEn,
     isFeatured: p.isFeatured,
     sizes: Array.from(new Set(p.variants.map((v) => v.size))),
+    colors: Array.from(
+      new Map(p.variants.map((v) => [v.colorName, { colorName: v.colorName, colorHex: v.colorHex }])).values()
+    ),
     totalStock: p.variants.reduce((s, v) => s + v.stockQuantity, 0),
     img: p.images[0]?.url || 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=900&q=80',
   }));

@@ -25,6 +25,7 @@ export interface ProductCardItem {
   categoryNameEn?: string;
   isFeatured?: boolean;
   sizes: string[];
+  colors?: { colorName: string; colorHex: string }[];
   totalStock?: number;
   img: string;
 }
@@ -54,6 +55,7 @@ export function HeroSection({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [quickOpenId, setQuickOpenId] = useState<string | null>(null);
+  const [quickColors, setQuickColors] = useState<Record<string, string>>({});
 
   const badge = locale === 'ar' ? settings.heroBadgeAr : locale === 'en' ? settings.heroBadgeEn : settings.heroBadgeFr;
   const heroTitle = locale === 'ar' ? settings.heroTitleAr : locale === 'en' ? settings.heroTitleEn : settings.heroTitleFr;
@@ -352,6 +354,28 @@ export function HeroSection({
                           : 'translate-y-4 opacity-0 pointer-events-none md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-hover:pointer-events-auto'
                       }`}
                     >
+                      {item.colors && item.colors.some((cl) => cl.colorName !== 'Standard') && (
+                        <div className="flex items-center justify-center gap-1.5 mb-2 flex-wrap">
+                          {item.colors.map((cl) => {
+                            const activeColor = quickColors[item.id] || item.colors?.[0]?.colorName || 'Standard';
+                            const isSelected = activeColor === cl.colorName;
+                            return (
+                              <button
+                                key={cl.colorName}
+                                type="button"
+                                onClick={() => setQuickColors((prev) => ({ ...prev, [item.id]: cl.colorName }))}
+                                title={cl.colorName}
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] border transition-all ${
+                                  isSelected ? 'border-black bg-black text-white font-semibold' : 'border-black/15 bg-white text-black/80'
+                                }`}
+                              >
+                                <span className="w-2.5 h-2.5 rounded-full border border-black/20" style={{ backgroundColor: cl.colorHex }} />
+                                <span>{cl.colorName}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                       <p className="text-[10px] uppercase tracking-widest text-center opacity-60 mb-2 font-medium">
                         {t('product.selectSize')}
                       </p>
@@ -370,6 +394,7 @@ export function HeroSection({
                                 titleEn: item.titleEn,
                                 priceDzd: item.priceDzd,
                                 size,
+                                colorName: quickColors[item.id] || item.colors?.[0]?.colorName || 'Standard',
                                 image: item.img,
                               });
                             }}

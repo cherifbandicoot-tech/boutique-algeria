@@ -27,7 +27,7 @@ interface TrackedOrder {
   items: Array<{
     titleFr: string;
     titleAr: string;
-    size: string;
+    size: string; colorName?: string;
     quantity: number;
     unitPriceDzd: number;
   }>;
@@ -188,7 +188,7 @@ function TrackOrderContent() {
           <div className="space-y-2 pt-2 border-t border-black/10 text-xs">
             {order.items.map((it, idx) => (
               <div key={idx} className="flex justify-between">
-                <span>{locale === 'ar' ? it.titleAr : it.titleFr} ({it.size}) × {it.quantity}</span>
+                <span>{locale === 'ar' ? it.titleAr : it.titleFr} ({it.size}{it.colorName && it.colorName !== 'Standard' ? ` • ${it.colorName}` : ''}) × {it.quantity}</span>
                 <span className="font-semibold">{(it.unitPriceDzd * it.quantity).toLocaleString()} DZD</span>
               </div>
             ))}
