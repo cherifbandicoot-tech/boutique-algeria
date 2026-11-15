@@ -90,7 +90,7 @@ export function HeroSection({
             animate={{ y: [0, -18, 0], scale: [1, 1.07, 1] }}
             transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
             style={{ backgroundColor: `${settings.accentColor}26` }}
-            className="absolute top-12 right-10 w-96 h-96 rounded-full ur-3xl pointer-events-none"
+            className="absolute top-12 right-10 w-96 h-96 rounded-full blur-3xl pointer-events-none"
           />
           <motion.div
             animate={{ y: [0, 16, 0], scale: [1, 1.05, 1] }}
@@ -181,15 +181,22 @@ export function HeroSection({
               <motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
-                className="relative w-full max-w-[390px] h-[470px] sm:h-[530px] rounded-[2.2rem] overflow-hidden shadow-2xl border-2 border-white/70 bg-stone-100"
+                className="relative w-full max-w-[420px] aspect-[4/5] rounded-[2.2rem] overflow-hidden shadow-2xl border-2 border-white/70 bg-[#F4F0EA]"
               >
+                <Image
+                  src={settings.heroImageUrl}
+                  alt=""
+                  aria-hidden="true"
+                  fill
+                  className="object-cover scale-110 blur-2xl opacity-45 pointer-events-none"
+                />
                 <Image
                   src={settings.heroImageUrl}
                   alt={heroTitle}
                   fill
                   priority
-                  sizes="(max-width: 768px) 100vw, 390px"
-                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 100vw, 420px"
+                  className="relative z-10 object-contain"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />
 
@@ -309,14 +316,21 @@ export function HeroSection({
                   whileHover={{ y: -6 }}
                   className="group"
                 >
-                  <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-stone-200 mb-4 shadow-md border border-black/5">
-                    <Link href={linkHref}>
+                  <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-[#F4F0EA] mb-4 shadow-md border border-black/5">
+                    <Link href={linkHref} className="block relative w-full h-full">
+                      <Image
+                        src={item.img}
+                        alt=""
+                        aria-hidden="true"
+                        fill
+                        className="object-cover scale-110 blur-2xl opacity-35 pointer-events-none"
+                      />
                       <Image
                         src={item.img}
                         alt={title}
                         fill
                         sizes="(max-width: 768px) 100vw, 33vw"
-                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="relative z-10 object-contain transition-transform duration-700 group-hover:scale-105"
                       />
                     </Link>
 

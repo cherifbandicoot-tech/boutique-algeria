@@ -97,7 +97,7 @@ export function ProductDetailClient({ product, locale }: { product: ProductData;
 
       <div className="grid lg:grid-cols-12 gap-12 items-start">
         <div className="lg:col-span-7 space-y-4">
-          <div className="relative aspect-[3/4] max-w-[540px] mx-auto rounded-3xl overflow-hidden bg-stone-100 shadow-xl border border-black/5">
+          <div className="relative aspect-[3/4] max-w-[540px] mx-auto rounded-3xl overflow-hidden bg-[#F4F0EA] shadow-xl border border-black/5">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeImage || product.images[0]?.url}
@@ -107,7 +107,8 @@ export function ProductDetailClient({ product, locale }: { product: ProductData;
                 transition={{ duration: 0.3 }}
                 className="absolute inset-0"
               >
-                <Image src={activeImage || product.images[0]?.url} alt={title} fill priority className="object-cover" />
+                <Image src={activeImage || product.images[0]?.url} alt="" aria-hidden="true" fill className="object-cover scale-110 blur-2xl opacity-40 pointer-events-none" />
+                <Image src={activeImage || product.images[0]?.url} alt={title} fill priority className="relative z-10 object-contain" />
               </motion.div>
             </AnimatePresence>
           </div>
@@ -124,7 +125,7 @@ export function ProductDetailClient({ product, locale }: { product: ProductData;
                     activeImage === img.url ? 'border-black shadow-md' : 'border-transparent opacity-60'
                   }`}
                 >
-                  <Image src={img.url} alt="" fill className="object-cover" />
+                  <Image src={img.url} alt="" fill className="object-contain bg-[#F4F0EA]" />
                 </motion.button>
               ))}
             </div>

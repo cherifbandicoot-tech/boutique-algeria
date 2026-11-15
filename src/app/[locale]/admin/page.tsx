@@ -243,7 +243,11 @@ export default function AdminDashboard() {
     fd.append('folder', sigData.folder);
     const up = await fetch(`https://api.cloudinary.com/v1_1/${sigData.cloudName}/image/upload`, { method: 'POST', body: fd });
     const data = await up.json();
-    return data.secure_url || null;
+    if (!up.ok || !data.secure_url) {
+      alert(data.error?.message || 'Erreur lors de l’envoi de la photo');
+      return null;
+    }
+    return String(data.secure_url).replace('/upload/', '/upload/f_auto,q_auto,w_1400/');
   };
 
   const ecomDispatch = async (orderId: string, confirmee: number) => {
@@ -1017,6 +1021,25 @@ export default function AdminDashboard() {
                     onChange={(e) => setPForm({ ...pForm, imageUrlsText: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-black/15 text-xs font-mono"
                   />
+                  {pForm.imageUrlsText.trim() && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {pForm.imageUrlsText.split('\n').map((s) => s.trim()).filter(Boolean).map((url, idx) => (
+                        <div key={idx} className="relative w-16 h-20 rounded-xl overflow-hidden border border-black/15 bg-[#F4F0EA]">
+                          <img src={url} alt="" className="w-full h-full object-contain" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = pForm.imageUrlsText.split('\n').map((s) => s.trim()).filter((_, i) => i !== idx).join('\n');
+                              setPForm({ ...pForm, imageUrlsText: next });
+                            }}
+                            className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/75 text-white text-[10px] flex items-center justify-center"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2 text-xs">
@@ -1227,12 +1250,20 @@ export default function AdminDashboard() {
                   <input value={site.heroCtaAr} onChange={(e) => setSite({ ...site, heroCtaAr: e.target.value })} placeholder="زر CTA AR" className="px-3 py-2 rounded-xl border border-black/15" />
                   <input value={site.heroCtaEn} onChange={(e) => setSite({ ...site, heroCtaEn: e.target.value })} placeholder="CTA EN" className="px-3 py-2 rounded-xl border border-black/15" />
 
-                  <div className="sm:col-span-3 flex gap-2 items-center">
-                    <input value={site.heroImageUrl} onChange={(e) => setSite({ ...site, heroImageUrl: e.target.value })} placeholder="URL Image Hero" className="flex-1 px-3 py-2 rounded-xl border border-black/15" />
-                    <label className="px-3 py-2 rounded-xl bg-stone-100 cursor-pointer font-semibold">
-                      Upload Hero
-                      <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { const u = await uploadCloudinary(f); if (u) setSite({ ...site, heroImageUrl: u }); } }} />
-                    </label>
+                  <div className="sm:col-span-3 space-y-2">
+                    <div className="flex gap-2 items-center">
+                      <input value={site.heroImageUrl} onChange={(e) => setSite({ ...site, heroImageUrl: e.target.value })} placeholder="URL Image Hero" className="flex-1 px-3 py-2 rounded-xl border border-black/15" />
+                      <label className="px-3 py-2 rounded-xl bg-stone-100 cursor-pointer font-semibold hover:bg-black hover:text-white transition-colors">
+                        Upload Hero
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { const u = await uploadCloudinary(f); if (u) setSite({ ...site, heroImageUrl: u }); } }} />
+                      </label>
+                    </div>
+                    {site.heroImageUrl && (
+                      <div className="relative w-24 aspect-[4/5] rounded-2xl overflow-hidden border border-black/15 bg-[#F4F0EA]">
+                        <img src={site.heroImageUrl} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover scale-110 blur-md opacity-40" />
+                        <img src={site.heroImageUrl} alt="Aperçu Hero" className="relative z-10 w-full h-full object-contain" />
+                      </div>
+                    )}
                   </div>
 
                   <textarea value={site.sizeGuideFr} onChange={(e) => setSite({ ...site, sizeGuideFr: e.target.value })} placeholder="Guide des tailles FR" className="px-3 py-2 rounded-xl border border-black/15" rows={2} />
