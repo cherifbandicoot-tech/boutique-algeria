@@ -39,7 +39,7 @@ interface OrderReceipt {
   stopdeskName?: string | null;
   deliveryType: string;
   delay: string;
-  items: { title: string; size: string; quantity: number; unitPriceDzd: number }[];
+  items: { title: string; size: string; colorName?: string; quantity: number; unitPriceDzd: number }[];
 }
 
 function formatDeskLabel(nomBureau: string, commune?: string) {
