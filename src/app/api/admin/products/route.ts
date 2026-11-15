@@ -42,8 +42,8 @@ const productSchema = z.object({
   categoryId: z.string().min(1),
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().optional(),
-  imageUrls: z.array(z.string().url()).min(1).optional(),
-  imageUrl: z.string().url().optional(),
+  imageUrls: z.array(z.string().min(1).refine((v) => v.startsWith('http') || v.startsWith('/'))).min(1).optional(),
+  imageUrl: z.string().min(1).refine((v) => v.startsWith('http') || v.startsWith('/')).optional(),
   sizes: z.array(z.string().min(1)).optional(),
   variants: z.array(variantInput).optional(),
 });

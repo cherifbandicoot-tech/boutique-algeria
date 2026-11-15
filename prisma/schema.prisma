@@ -230,3 +230,9 @@ model OrderItem {
   quantity     Int
   unitPriceDzd Int
 }
+model StoredImage {
+  id        String   @id @default(cuid())
+  mimeType  String
+  data      Bytes
+  createdAt DateTime @default(now())
+}

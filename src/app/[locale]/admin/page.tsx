@@ -228,26 +228,62 @@ export default function AdminDashboard() {
     loadAll();
   };
 
+  const compressImage = (file: File): Promise<File> =>
+    new Promise((resolve) => {
+      if (file.size <= 900 * 1024) return resolve(file);
+      const img = new window.Image();
+      const objUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(objUrl);
+        const maxDim = 1400;
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width >= height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(file);
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return resolve(file);
+            resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+          },
+          'image/jpeg',
+          0.86
+        );
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(objUrl);
+        resolve(file);
+      };
+      img.src = objUrl;
+    });
+
   const uploadCloudinary = async (file: File): Promise<string | null> => {
-    const sigRes = await fetch('/api/admin/upload', { method: 'POST' });
-    const sigData = await sigRes.json();
-    if (!sigRes.ok) {
-      alert(sigData.error || 'Cloudinary non configuré dans .env');
+    try {
+      const readyFile = await compressImage(file);
+      const fd = new FormData();
+      fd.append('file', readyFile);
+      const res = await fetch('/api/admin/upload-image', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        alert(data.error || 'Erreur lors de l’envoi de la photo');
+        return null;
+      }
+      return data.url;
+    } catch {
+      alert('Erreur réseau lors de l’envoi de la photo');
       return null;
     }
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('api_key', sigData.apiKey);
-    fd.append('timestamp', String(sigData.timestamp));
-    fd.append('signature', sigData.signature);
-    fd.append('folder', sigData.folder);
-    const up = await fetch(`https://api.cloudinary.com/v1_1/${sigData.cloudName}/image/upload`, { method: 'POST', body: fd });
-    const data = await up.json();
-    if (!up.ok || !data.secure_url) {
-      alert(data.error?.message || 'Erreur lors de l’envoi de la photo');
-      return null;
-    }
-    return String(data.secure_url).replace('/upload/', '/upload/f_auto,q_auto,w_1400/');
   };
 
   const ecomDispatch = async (orderId: string, confirmee: number) => {
@@ -999,7 +1035,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between">
                     <span className="font-semibold">Images (1 URL par ligne) :</span>
                     <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 cursor-pointer hover:bg-black hover:text-white font-semibold">
-                      <Upload size={13} /> Upload Cloudinary
+                      <Upload size={13} /> Choisir une Photo
                       <input
                         type="file"
                         accept="image/*"
@@ -1254,7 +1290,7 @@ export default function AdminDashboard() {
                     <div className="flex gap-2 items-center">
                       <input value={site.heroImageUrl} onChange={(e) => setSite({ ...site, heroImageUrl: e.target.value })} placeholder="URL Image Hero" className="flex-1 px-3 py-2 rounded-xl border border-black/15" />
                       <label className="px-3 py-2 rounded-xl bg-stone-100 cursor-pointer font-semibold hover:bg-black hover:text-white transition-colors">
-                        Upload Hero
+                        Uploader Photo Hero
                         <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { const u = await uploadCloudinary(f); if (u) setSite({ ...site, heroImageUrl: u }); } }} />
                       </label>
                     </div>
