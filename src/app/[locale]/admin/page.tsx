@@ -1293,7 +1293,7 @@ export default function AdminDashboard() {
                       <input value={site.heroImageUrl} onChange={(e) => setSite({ ...site, heroImageUrl: e.target.value })} placeholder="URL Image Hero" className="flex-1 px-3 py-2 rounded-xl border border-black/15" />
                       <label className="px-3 py-2 rounded-xl bg-stone-100 cursor-pointer font-semibold hover:bg-black hover:text-white transition-colors">
                         Uploader Photo Hero
-                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { const u = await uploadCloudinary(f); if (u) setSite({ ...site, heroImageUrl: u }); } }} />
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { const u = await uploadCloudinary(f); if (u) { setSite({ ...site, heroImageUrl: u }); notify("Photo Hero prête ! Cliquez sur Sauvegarder en bas."); } } }} />
                       </label>
                     </div>
                     {site.heroImageUrl && (

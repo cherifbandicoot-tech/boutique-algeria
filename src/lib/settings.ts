@@ -127,14 +127,10 @@ export function invalidateSiteSettingsCache() {
 }
 
 export async function getSiteSettings(): Promise<SiteSettingsData> {
-  const now = Date.now();
-  if (cachedSettings && now < cachedSettings.expiresAt) {
-    return cachedSettings.data;
-  }
   try {
     const row = await prisma.siteSettings.findUnique({ where: { id: 'default' } });
     const data = row ? { ...DEFAULT_SITE_SETTINGS, ...row } : DEFAULT_SITE_SETTINGS;
-    cachedSettings = { data, expiresAt: now + 60_000 };
+    cachedSettings = { data, expiresAt: Date.now() + 60_000 };
     return data;
   } catch {
     return cachedSettings?.data || DEFAULT_SITE_SETTINGS;

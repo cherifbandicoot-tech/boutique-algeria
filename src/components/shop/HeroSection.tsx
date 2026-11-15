@@ -181,30 +181,20 @@ export function HeroSection({
               <motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
-                className="relative w-full max-w-[420px] aspect-[4/5] rounded-[2.2rem] overflow-hidden shadow-2xl border-2 border-white/70 bg-[#F4F0EA]"
+                className="relative inline-block max-w-full rounded-[2.2rem] overflow-hidden shadow-2xl border-2 border-white/70 bg-[#F4F0EA]"
               >
-                <Image
-                  src={settings.heroImageUrl}
-                  alt=""
-                  aria-hidden="true"
-                  fill
-                  className="object-cover scale-110 blur-2xl opacity-45 pointer-events-none"
-                />
-                <Image
+                <img
                   src={settings.heroImageUrl}
                   alt={heroTitle}
-                  fill
-                  priority
-                  sizes="(max-width: 768px) 100vw, 420px"
-                  className="relative z-10 object-contain"
+                  className="block max-w-full max-h-[540px] w-auto h-auto object-contain"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none z-10" />
 
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6, duration: 0.6 }}
-                  className="absolute bottom-4 inset-x-4 bg-white/90 backdrop-blur-md rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-lg"
+                  className="absolute bottom-4 inset-x-4 z-20 bg-white/90 backdrop-blur-md rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-lg"
                 >
                   <div>
                     <p className="font-serif font-semibold text-sm text-black">

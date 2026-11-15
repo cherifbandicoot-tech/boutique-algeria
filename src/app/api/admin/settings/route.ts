@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
 import { getSiteSettings, invalidateSiteSettingsCache } from '@/lib/settings';
@@ -52,5 +53,6 @@ export async function PUT(req: NextRequest) {
   });
 
   invalidateSiteSettingsCache();
+  revalidatePath('/', 'layout');
   return NextResponse.json({ settings });
 }
