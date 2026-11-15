@@ -56,7 +56,16 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 2. Foolproof fallback: save directly into PostgreSQL StoredImage
+  // 2. Foolproof fallback: ensure StoredImage table exists & save directly into PostgreSQL
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "StoredImage" (
+      "id" TEXT NOT NULL,
+      "mimeType" TEXT NOT NULL,
+      "data" BYTEA NOT NULL,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "StoredImage_pkey" PRIMARY KEY ("id")
+    );
+  `);
   const buffer = Buffer.from(await file.arrayBuffer());
   const saved = await prisma.storedImage.create({
     data: {
